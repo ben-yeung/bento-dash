@@ -26,6 +26,14 @@ import { pointToCell } from '@/lib/grid/collision';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
 import type { Category, WidgetLayout } from '@/lib/grid/types';
 
+function parsePaletteId(id: string): { cat: Category; w: number; h: number } | null {
+  if (!id.startsWith('palette:')) return null;
+  const [, cat, size] = id.split(':');
+  const [w, h] = (size ?? '').split('x').map(Number);
+  if (!cat || isNaN(w) || isNaN(h) || w < 1 || h < 1) return null;
+  return { cat: cat as Category, w, h };
+}
+
 export function AppShell() {
   const boardRef = useRef<HTMLDivElement>(null);
   const metrics = useGridMetrics(boardRef);
@@ -40,27 +48,15 @@ export function AppShell() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  const isPaletteDrag = activeId?.startsWith('palette:') ?? false;
-
-  const activeWidget: WidgetLayout | null = isPaletteDrag
-    ? (() => {
-        const parts = (activeId ?? '').split(':');
-        const [w, h] = (parts[2] ?? '1x1').split('x').map(Number);
-        return {
-          id: activeId!,
-          x: 0,
-          y: 0,
-          w,
-          h,
-          category: (parts[1] ?? 'finance') as Category,
-          order: 0,
-        };
-      })()
+  const paletteInfo = activeId ? parsePaletteId(activeId) : null;
+  const activeWidget: WidgetLayout | null = paletteInfo
+    ? { id: activeId!, x: 0, y: 0, w: paletteInfo.w, h: paletteInfo.h, category: paletteInfo.cat, order: 0 }
     : (preview ?? committed).find((w) => w.id === activeId) ?? null;
 
   function handleDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id));
-    setPreview(committed);
+    const id = String(e.active.id);
+    setActiveId(id);
+    if (!id.startsWith('palette:')) setPreview(committed);
   }
 
   function handleDragMove(e: DragMoveEvent) {
@@ -72,9 +68,9 @@ export function AppShell() {
     const id = String(e.active.id);
 
     if (id.startsWith('palette:')) {
-      const parts = id.split(':');
-      const [w, h] = (parts[2] ?? '1x1').split('x').map(Number);
-      setPalettePreview({ x: cell.x, y: cell.y, w, h, category: (parts[1] ?? 'finance') as Category });
+      const parsed = parsePaletteId(id);
+      if (!parsed) return;
+      setPalettePreview({ x: cell.x, y: cell.y, w: parsed.w, h: parsed.h, category: parsed.cat });
     } else {
       setPreview(getStrategy(layoutMode).preview(committed, { kind: 'drag', id, targetCell: cell }));
     }
@@ -84,12 +80,12 @@ export function AppShell() {
     const id = String(e.active.id);
 
     if (id.startsWith('palette:')) {
-      const parts = id.split(':');
-      const cat = (parts[1] ?? 'finance') as Category;
-      const [w, h] = (parts[2] ?? '1x1').split('x').map(Number);
-      const pp = useDragStore.getState().palettePreview;
-      addWidget(cat, w, h, pp ? { x: pp.x, y: pp.y } : undefined);
-      setFabOpen(false);
+      const parsed = parsePaletteId(id);
+      if (parsed) {
+        const pp = useDragStore.getState().palettePreview;
+        addWidget(parsed.cat, parsed.w, parsed.h, pp ? { x: pp.x, y: pp.y } : undefined);
+        setFabOpen(false);
+      }
     } else if (preview) {
       const moved = preview.find((w) => w.id === id);
       if (moved) moveWidget(id, { x: moved.x, y: moved.y });
