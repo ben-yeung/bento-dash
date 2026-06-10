@@ -1,6 +1,7 @@
 'use client';
 import styles from './AppShell.module.css';
 import { ThemeController } from './ThemeController';
+import { BentoBoard } from '@/components/board/BentoBoard';
 
 export function AppShell() {
   return (
@@ -9,7 +10,7 @@ export function AppShell() {
       <aside aria-label="utility bar" style={{ borderRight: '1px solid var(--border-hairline)' }} />
       <div className={styles.main}>
         <div className={styles.scroll}>
-          <div style={{ padding: '24px 0', color: 'var(--muted)' }}>board mounts here</div>
+          <BentoBoard />
         </div>
       </div>
     </div>
