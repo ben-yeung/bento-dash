@@ -1,0 +1,40 @@
+.bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0;
+  border-right: 1px solid var(--border-hairline);
+  background: var(--surface);
+}
+.logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent);
+}
+.divider {
+  width: 28px;
+  height: 1px;
+  background: var(--border-hairline);
+}
+.chip {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip:hover {
+  color: var(--text);
+}
+.chip[data-active='true'] {
+  border-color: var(--accent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}

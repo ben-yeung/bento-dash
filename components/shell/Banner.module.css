@@ -1,0 +1,21 @@
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 26px 0 14px;
+}
+.greet {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}

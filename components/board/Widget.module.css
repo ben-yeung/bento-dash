@@ -1,0 +1,19 @@
+.tile {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-tile);
+  overflow: hidden;
+  user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+.tile:active {
+  cursor: grabbing;
+}
+.tile[data-dragging='true'] {
+  opacity: 0.35;
+}
+.tile[data-dimmed='true'] {
+  opacity: 0.18;
+}
