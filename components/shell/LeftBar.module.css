@@ -38,3 +38,23 @@
   color: var(--text);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
+.manageToggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.manageToggle:hover {
+  color: var(--text);
+}
+.manageToggle[data-active='true'] {
+  border-color: var(--accent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
