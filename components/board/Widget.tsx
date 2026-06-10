@@ -50,6 +50,7 @@ export function Widget({
       {...attributes}
     >
       <WidgetSkeleton category={widget.category} />
+      {/* TODO(manage-mode-stronger-signal): no exit animation when manage mode toggles off — wrap × in AnimatePresence with an exit prop if the pop-out is wanted. See docs/superpowers/specs/2026-06-10-manage-mode-design.md §6.4. */}
       {manageMode && (
         <motion.button
           type="button"
