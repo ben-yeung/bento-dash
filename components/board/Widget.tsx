@@ -1,10 +1,9 @@
 'use client';
-import { type CSSProperties, type ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 import styles from './Widget.module.css';
-import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
-import { useBoard } from '@/lib/state/boardStore';
+import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
 import type { WidgetLayout } from '@/lib/grid/types';
 
 interface WidgetProps {
@@ -12,7 +11,9 @@ interface WidgetProps {
   dragging?: boolean;
   dimmed?: boolean;
   interactive?: boolean;
-  manageMode?: boolean;
+  isSwapTarget?: boolean;
+  onMount?: (id: string, el: HTMLElement) => void;
+  onUnmount?: (id: string) => void;
   children?: ReactNode;
 }
 
@@ -21,16 +22,34 @@ export function Widget({
   dragging = false,
   dimmed = false,
   interactive = true,
-  manageMode = false,
+  isSwapTarget = false,
+  onMount,
+  onUnmount,
   children,
 }: WidgetProps) {
-  const removeWidget = useBoard((s) => s.removeWidget);
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: widget.id,
     disabled: !interactive,
   });
-  const def = WIDGET_REGISTRY.find((d) => d.category === widget.category);
-  const ContentComponent = def?.ContentComponent;
+
+  // Maintain a local ref alongside dnd-kit's setNodeRef so we can register
+  // the DOM element for bounding-box hit detection in BentoBoard.
+  const localRef = useRef<HTMLDivElement | null>(null);
+  const combinedRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      setNodeRef(el);
+      localRef.current = el;
+    },
+    [setNodeRef],
+  );
+
+  useEffect(() => {
+    if (localRef.current) onMount?.(widget.id, localRef.current);
+    return () => { onUnmount?.(widget.id); };
+  // onMount/onUnmount are stable useCallback refs from BentoBoard — safe to omit from deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [widget.id]);
+
   const style: CSSProperties = {
     gridColumn: `${widget.x + 1} / span ${widget.w}`,
     gridRow: `${widget.y + 1} / span ${widget.h}`,
@@ -40,36 +59,19 @@ export function Widget({
       layout
       layoutId={widget.id}
       transition={{ type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
       className={styles.tile}
       style={style}
       data-dragging={dragging}
       data-dimmed={dimmed}
-      ref={setNodeRef}
+      data-swap-target={isSwapTarget}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      ref={combinedRef}
       {...(interactive ? listeners : {})}
       {...attributes}
     >
-      {ContentComponent && (
-        <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
-      )}
-      {/* TODO(manage-mode-x-exit-anim): the × mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
-      {manageMode && (
-        <motion.button
-          type="button"
-          className={styles.close}
-          aria-label="Delete widget"
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          // Stop the pointer-down from reaching the tile's drag listeners,
-          // so clicking × never starts a drag.
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => removeWidget(widget.id)}
-        >
-          ×
-        </motion.button>
-      )}
+      <WidgetSkeleton category={widget.category} w={widget.w} h={widget.h} />
       {children}
     </motion.div>
   );
