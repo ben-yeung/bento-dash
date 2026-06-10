@@ -4,6 +4,7 @@ import { ThemeController } from './ThemeController';
 import { LeftBar } from './LeftBar';
 import { Banner } from './Banner';
 import { BentoBoard } from '@/components/board/BentoBoard';
+import { ProfileButton } from './ProfileButton';
 
 export function AppShell() {
   return (
@@ -12,7 +13,7 @@ export function AppShell() {
       <LeftBar />
       <div className={styles.main}>
         <div className={styles.scroll}>
-          <Banner />
+          <Banner profileSlot={<ProfileButton />} />
           <BentoBoard />
         </div>
       </div>

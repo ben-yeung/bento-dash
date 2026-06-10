@@ -1,0 +1,71 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+.modal {
+  width: 420px;
+  max-width: calc(100vw - 40px);
+  border-radius: var(--radius-float);
+  padding: 24px;
+}
+.title {
+  font-size: 18px;
+  font-weight: 650;
+  margin: 0 0 18px;
+}
+.row {
+  margin-bottom: 18px;
+}
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.segBtn {
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+}
+.segBtn[data-on='true'] {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+}
+.swatches {
+  display: flex;
+  gap: 10px;
+}
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.swatch[data-on='true'] {
+  border-color: var(--text);
+}
+.close {
+  margin-top: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
