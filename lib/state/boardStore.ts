@@ -42,6 +42,12 @@ export const useBoard = create<BoardState>()(
       removeWidget: (id) =>
         set({ widgets: strategy().preview(get().widgets, { kind: 'remove', id }) }),
     }),
+    // TODO(persist-hydration): both stores persist without skipHydration, while BentoBoard
+    // is prerendered with seed state on the server. When persisted localStorage differs from
+    // the seed, the first client paint can momentarily differ from server HTML (theme/accent
+    // are covered by the layout.tsx bootstrap script; board widgets and Banner's new Date()
+    // are not), risking a hydration warning / brief flash. Consider skipHydration + a rehydrate
+    // effect, or rendering the board only after mount. anchor: lib/state/boardStore.ts
     { name: 'bento-board' },
   ),
 );
