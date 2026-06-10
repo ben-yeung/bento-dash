@@ -1,0 +1,6 @@
+.ghost {
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-tile);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  pointer-events: none;
+}
