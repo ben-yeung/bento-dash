@@ -50,7 +50,7 @@ export function Widget({
       {...attributes}
     >
       <WidgetSkeleton category={widget.category} />
-      {/* TODO(manage-mode-stronger-signal): no exit animation when manage mode toggles off — wrap × in AnimatePresence with an exit prop if the pop-out is wanted. See docs/superpowers/specs/2026-06-10-manage-mode-design.md §6.4. */}
+      {/* TODO(manage-mode-x-exit-anim): the × mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
       {manageMode && (
         <motion.button
           type="button"
