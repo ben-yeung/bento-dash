@@ -5,6 +5,7 @@ import { LeftBar } from './LeftBar';
 import { Banner } from './Banner';
 import { BentoBoard } from '@/components/board/BentoBoard';
 import { ProfileButton } from './ProfileButton';
+import { Fab } from './Fab';
 
 export function AppShell() {
   return (
@@ -16,6 +17,7 @@ export function AppShell() {
           <Banner profileSlot={<ProfileButton />} />
           <BentoBoard />
         </div>
+        <Fab />
       </div>
     </div>
   );
