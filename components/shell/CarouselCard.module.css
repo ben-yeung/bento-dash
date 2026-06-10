@@ -41,7 +41,9 @@
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border: 1px solid var(--border-hairline);
   border-radius: 14px;
   padding: 12px;
@@ -62,7 +64,7 @@
   transform: translateX(-50%);
   width: 10px;
   height: 6px;
-  background: var(--surface);
+  background: var(--surface-glass);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 

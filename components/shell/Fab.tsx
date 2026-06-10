@@ -12,7 +12,7 @@ export function Fab() {
   const setFabOpen = useDragStore((s) => s.setFabOpen);
 
   return (
-    <div className={styles.anchor}>
+    <>
       <AnimatePresence>
         {fabOpen && (
           <motion.div
@@ -28,6 +28,7 @@ export function Fab() {
         )}
       </AnimatePresence>
 
+      <div className={styles.anchor}>
       <AnimatePresence mode="popLayout">
         {!fabOpen ? (
           <motion.button
@@ -52,6 +53,7 @@ export function Fab() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 }
