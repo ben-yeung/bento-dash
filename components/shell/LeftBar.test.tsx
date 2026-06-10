@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LeftBar } from './LeftBar';
 import { useSettings } from '@/lib/state/settingsStore';
@@ -30,7 +30,9 @@ describe('LeftBar', () => {
   it('drops a chip after its last widget is removed from the board', () => {
     const { rerender } = render(<LeftBar />);
     expect(screen.getByRole('button', { name: 'Health' })).toBeTruthy();
-    useBoard.setState({ widgets: [w('a', 'finance')] });
+    act(() => {
+      useBoard.setState({ widgets: [w('a', 'finance')] });
+    });
     rerender(<LeftBar />);
     expect(screen.queryByRole('button', { name: 'Health' })).toBeNull();
   });

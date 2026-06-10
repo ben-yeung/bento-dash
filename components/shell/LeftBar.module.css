@@ -18,43 +18,31 @@
   height: 1px;
   background: var(--border-hairline);
 }
-.chip {
+.iconButton {
   width: 44px;
   height: 44px;
   border-radius: 12px;
   border: 1px solid var(--border-hairline);
   background: transparent;
   color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.iconButton:hover {
+  color: var(--text);
+}
+.iconButton[data-active='true'] {
+  border-color: var(--accent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.chip {
+  composes: iconButton;
   font-size: 10px;
   text-transform: capitalize;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.chip:hover {
-  color: var(--text);
-}
-.chip[data-active='true'] {
-  border-color: var(--accent);
-  color: var(--text);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .manageToggle {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--muted);
+  composes: iconButton;
   font-size: 18px;
   line-height: 1;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.manageToggle:hover {
-  color: var(--text);
-}
-.manageToggle[data-active='true'] {
-  border-color: var(--accent);
-  color: var(--text);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
