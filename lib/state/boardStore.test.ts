@@ -32,4 +32,12 @@ describe('boardStore', () => {
     useBoard.getState().resizeWidget(id, 3, 3);
     expect(useBoard.getState().widgets[0]).toMatchObject({ w: 3, h: 3 });
   });
+
+  it('places a widget at the target cell when targetCell is provided (pushCompact)', () => {
+    useSettings.setState({ layoutMode: 'pushCompact' });
+    useBoard.getState().addWidget('calendar', 1, 1, { x: 4, y: 0 });
+    const ws = useBoard.getState().widgets;
+    expect(ws).toHaveLength(1);
+    expect(ws[0]).toMatchObject({ x: 4, y: 0 });
+  });
 });

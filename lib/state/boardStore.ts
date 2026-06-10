@@ -20,7 +20,7 @@ interface BoardState {
   reResolve: () => void;
   moveWidget: (id: string, targetCell: { x: number; y: number }) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
-  addWidget: (category: Category, w: number, h: number) => void;
+  addWidget: (category: Category, w: number, h: number, targetCell?: { x: number; y: number }) => void;
   removeWidget: (id: string) => void;
 }
 
@@ -34,9 +34,17 @@ export const useBoard = create<BoardState>()(
         set({ widgets: strategy().preview(get().widgets, { kind: 'drag', id, targetCell }) }),
       resizeWidget: (id, w, h) =>
         set({ widgets: strategy().preview(get().widgets, { kind: 'resize', id, w, h }) }),
-      addWidget: (category, w, h) => {
+      addWidget: (category, w, h, targetCell) => {
         const order = get().widgets.reduce((max, x) => Math.max(max, x.order), -1) + 1;
-        const widget: WidgetLayout = { id: newId(), x: 0, y: 0, w, h, category, order };
+        const widget: WidgetLayout = {
+          id: newId(),
+          x: targetCell?.x ?? 0,
+          y: targetCell?.y ?? 0,
+          w,
+          h,
+          category,
+          order,
+        };
         set({ widgets: strategy().preview(get().widgets, { kind: 'add', widget }) });
       },
       removeWidget: (id) =>
