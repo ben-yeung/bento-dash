@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { LayoutGroup } from 'motion/react';
+import { LayoutGroup, AnimatePresence } from 'motion/react';
 import {
   DndContext,
   DragOverlay,
@@ -30,13 +30,29 @@ export function BentoBoard() {
   const moveWidget = useBoard((s) => s.moveWidget);
   const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
+  const activeTags = useSettings((s) => s.activeTags);
+  const filterMode = useSettings((s) => s.filterMode);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [preview, setPreview] = useState<WidgetLayout[] | null>(null);
   const [resizingId, setResizingId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
-  const widgets = preview ?? committed;
+  const base = preview ?? committed;
+  const filtering = activeTags.length > 0;
+  const matches = (cat: WidgetLayout['category']) => activeTags.includes(cat);
+
+  // hide mode: show only matches, re-resolved to pack tight. dim mode: show all.
+  const widgets =
+    filtering && filterMode === 'hide'
+      ? getStrategy(layoutMode).resolve(base.filter((w) => matches(w.category)))
+      : base;
+
+  // TODO(filter-drag): while a `hide` filter is active, drag/resize are locked (interactionsLocked)
+  // to avoid ambiguous order-mapping against hidden widgets. Allow rearranging within a filtered
+  // subset in a later pass. anchor: components/board/BentoBoard.tsx
+  const interactionsLocked = filtering && filterMode === 'hide';
+
   const activeWidget = widgets.find((w) => w.id === activeId) ?? null;
 
   function handleDragStart(e: DragStartEvent) {
@@ -67,7 +83,7 @@ export function BentoBoard() {
     setPreview(null);
   }
 
-  function WidgetWithResize({ w }: { w: WidgetLayout }) {
+  function WidgetWithResize({ w, dimmed = false }: { w: WidgetLayout; dimmed?: boolean }) {
     const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
       startW: w.w,
       startH: w.h,
@@ -84,17 +100,20 @@ export function BentoBoard() {
       <Widget
         widget={w}
         dragging={w.id === activeId}
-        interactive={resizingId === null}
+        dimmed={dimmed}
+        interactive={resizingId === null && !interactionsLocked}
       >
-        <ResizeHandle
-          onPointerDown={(e) => {
-            setResizingId(w.id);
-            setPreview(committed);
-            onPointerDown(e);
-          }}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-        />
+        {!interactionsLocked && (
+          <ResizeHandle
+            onPointerDown={(e) => {
+              setResizingId(w.id);
+              setPreview(committed);
+              onPointerDown(e);
+            }}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+          />
+        )}
       </Widget>
     );
   }
@@ -109,10 +128,12 @@ export function BentoBoard() {
     >
       <div ref={boardRef} className={styles.board} style={{ gridAutoRows: `${metrics.cellSize}px` }}>
         <LayoutGroup>
-          {widgets.map((w) => (
-            <WidgetWithResize key={w.id} w={w} />
-          ))}
-          {activeWidget && <DropPreview widget={activeWidget} />}
+          <AnimatePresence>
+            {widgets.map((w) => (
+              <WidgetWithResize key={w.id} w={w} dimmed={filtering && filterMode === 'dim' && !matches(w.category)} />
+            ))}
+          </AnimatePresence>
+          {activeWidget && !interactionsLocked && <DropPreview widget={activeWidget} />}
         </LayoutGroup>
       </div>
       <DragOverlay dropAnimation={null}>

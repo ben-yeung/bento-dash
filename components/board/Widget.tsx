@@ -38,6 +38,9 @@ export function Widget({
       style={style}
       data-dragging={dragging}
       data-dimmed={dimmed}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
       ref={setNodeRef}
       {...(interactive ? listeners : {})}
       {...attributes}
