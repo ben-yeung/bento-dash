@@ -46,7 +46,7 @@ export function Fab() {
             key="fab-carousel"
             layoutId="fab-morph"
             transition={SPRING_OPEN}
-            style={{ borderRadius: '22px', transformOrigin: 'bottom right' }}
+            style={{ borderRadius: '26px', transformOrigin: 'bottom right' }}
           >
             <WidgetCarousel onClose={() => setFabOpen(false)} />
           </motion.div>
