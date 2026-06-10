@@ -1,6 +1,7 @@
 import { COLS, type LayoutStrategy, type Move, type WidgetLayout } from '../types';
 import { clampSize } from '../sizes';
 import { createGrid, fits, occupy } from '../occupancy';
+import { applySwap } from '../swap';
 
 export function packDense(widgets: WidgetLayout[], cols = COLS): WidgetLayout[] {
   const sorted = [...widgets].sort((a, b) => a.order - b.order);
@@ -64,6 +65,8 @@ export const autoPack: LayoutStrategy = {
         return packDense([...widgets, { ...move.widget, order: widgets.length }]);
       case 'remove':
         return packDense(widgets.filter((w) => w.id !== move.id));
+      case 'swap':
+        return applySwap(widgets, move.id, move.targetId);
     }
   },
 };

@@ -40,4 +40,16 @@ describe('autoPack', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 0, y: 0, w: 2, h: 2 });
     expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 2, y: 0 });
   });
+
+  it('preview(swap) exchanges positions without repacking other widgets', () => {
+    const layout: WidgetLayout[] = [
+      { id: 'a', x: 0, y: 0, w: 2, h: 1, category: 'finance', order: 0 },
+      { id: 'b', x: 2, y: 0, w: 2, h: 1, category: 'health', order: 1 },
+      { id: 'c', x: 4, y: 0, w: 2, h: 1, category: 'lifestyle', order: 2 },
+    ];
+    const out = autoPack.preview(layout, { kind: 'swap', id: 'a', targetId: 'b' });
+    expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 2, y: 0 });
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
+    expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 4, y: 0 }); // untouched
+  });
 });
