@@ -1,3 +1,5 @@
+import { AppShell } from '@/components/shell/AppShell';
+
 export default function Page() {
-  return <main>Bento Dashboard</main>;
+  return <AppShell />;
 }

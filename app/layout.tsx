@@ -5,7 +5,7 @@ export const metadata = { title: 'Bento Dashboard' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );
