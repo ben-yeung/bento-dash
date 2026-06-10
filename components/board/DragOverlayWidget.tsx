@@ -18,7 +18,7 @@ export function DragOverlayWidget({ widget, metrics }: { widget: WidgetLayout; m
         boxShadow: '0 24px 48px rgba(0,0,0,0.35)',
       }}
     >
-      <WidgetSkeleton category={widget.category} />
+      <WidgetSkeleton category={widget.category} w={widget.w} h={widget.h} />
     </div>
   );
 }

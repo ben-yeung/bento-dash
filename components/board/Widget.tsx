@@ -45,7 +45,7 @@ export function Widget({
       {...(interactive ? listeners : {})}
       {...attributes}
     >
-      <WidgetSkeleton category={widget.category} />
+      <WidgetSkeleton category={widget.category} w={widget.w} h={widget.h} />
       {children}
     </motion.div>
   );
