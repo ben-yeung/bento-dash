@@ -23,6 +23,7 @@ interface BoardState {
   resizeWidget: (id: string, w: number, h: number) => void;
   addWidget: (category: Category, w: number, h: number, targetCell?: { x: number; y: number }) => void;
   removeWidget: (id: string) => void;
+  swapWidgets: (id: string, targetId: string) => void;
 }
 
 export const useBoard = create<BoardState>()(
@@ -48,6 +49,8 @@ export const useBoard = create<BoardState>()(
         };
         set({ widgets: strategy().preview(get().widgets, { kind: 'add', widget }) });
       },
+      swapWidgets: (id, targetId) =>
+        set({ widgets: strategy().preview(get().widgets, { kind: 'swap', id, targetId }) }),
       removeWidget: (id) => {
         const widgets = strategy().preview(get().widgets, { kind: 'remove', id });
         set({ widgets });
