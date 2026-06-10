@@ -14,6 +14,8 @@ import styles from './BentoBoard.module.css';
 import { Widget } from './Widget';
 import { DragOverlayWidget } from './DragOverlayWidget';
 import { DropPreview } from './DropPreview';
+import { ResizeHandle } from './ResizeHandle';
+import { useDragResize } from '@/lib/hooks/useDragResize';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
@@ -26,10 +28,12 @@ export function BentoBoard() {
   const metrics = useGridMetrics(boardRef);
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
+  const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [preview, setPreview] = useState<WidgetLayout[] | null>(null);
+  const [resizingId, setResizingId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const widgets = preview ?? committed;
@@ -63,6 +67,38 @@ export function BentoBoard() {
     setPreview(null);
   }
 
+  function WidgetWithResize({ w }: { w: WidgetLayout }) {
+    const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
+      startW: w.w,
+      startH: w.h,
+      metrics,
+      onPreview: (nw, nh) =>
+        setPreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+      onCommit: (nw, nh) => {
+        resizeWidget(w.id, nw, nh);
+        setResizingId(null);
+        setPreview(null);
+      },
+    });
+    return (
+      <Widget
+        widget={w}
+        dragging={w.id === activeId}
+        interactive={resizingId === null}
+      >
+        <ResizeHandle
+          onPointerDown={(e) => {
+            setResizingId(w.id);
+            setPreview(committed);
+            onPointerDown(e);
+          }}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+        />
+      </Widget>
+    );
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -74,7 +110,7 @@ export function BentoBoard() {
       <div ref={boardRef} className={styles.board} style={{ gridAutoRows: `${metrics.cellSize}px` }}>
         <LayoutGroup>
           {widgets.map((w) => (
-            <Widget key={w.id} widget={w} dragging={w.id === activeId} />
+            <WidgetWithResize key={w.id} w={w} />
           ))}
           {activeWidget && <DropPreview widget={activeWidget} />}
         </LayoutGroup>
