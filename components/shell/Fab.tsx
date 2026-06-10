@@ -3,9 +3,8 @@ import { useState } from 'react';
 import styles from './Fab.module.css';
 import { useBoard } from '@/lib/state/boardStore';
 import { SIZE_PRESETS } from '@/lib/grid/sizes';
+import { CATEGORY_ORDER } from '@/lib/grid/categories';
 import type { Category } from '@/lib/grid/types';
-
-const CATEGORIES: Category[] = ['finance', 'lifestyle', 'health', 'calendar'];
 
 export function Fab() {
   const addWidget = useBoard((s) => s.addWidget);
@@ -25,7 +24,7 @@ export function Fab() {
         <div className={`${styles.popover} glass`}>
           <div className={styles.label}>Category</div>
           <div className={styles.grid}>
-            {CATEGORIES.map((c) => (
+            {CATEGORY_ORDER.map((c) => (
               <button key={c} className={styles.opt} data-on={category === c} onClick={() => setCategory(c)}>
                 {c}
               </button>
