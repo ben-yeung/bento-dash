@@ -18,7 +18,7 @@
 .fabBtn {
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 26px;
   background: var(--accent);
   border: none;
   color: #fff;
