@@ -104,6 +104,7 @@ export function AppShell() {
 
   return (
     <DndContext
+      id="bento-dnd"
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
