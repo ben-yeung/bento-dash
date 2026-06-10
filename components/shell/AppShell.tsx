@@ -124,7 +124,6 @@ export function AppShell() {
       <DragOverlay dropAnimation={null}>
         {activeWidget ? <DragOverlayWidget widget={activeWidget} metrics={metrics} /> : null}
       </DragOverlay>
-      {/* Fab mounts here in Task 8 */}
     </DndContext>
   );
 }

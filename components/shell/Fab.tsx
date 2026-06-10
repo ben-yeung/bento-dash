@@ -1,50 +1,57 @@
 'use client';
-import { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import styles from './Fab.module.css';
-import { useBoard } from '@/lib/state/boardStore';
-import { SIZE_PRESETS } from '@/lib/grid/sizes';
-import type { Category } from '@/lib/grid/types';
+import { WidgetCarousel } from './WidgetCarousel';
+import { useDragStore } from '@/lib/state/dragStore';
 
-const CATEGORIES: Category[] = ['finance', 'lifestyle', 'health', 'calendar'];
+const SPRING_OPEN = { type: 'spring' as const, stiffness: 320, damping: 28, mass: 0.9 };
+const SPRING_CLOSE = { type: 'spring' as const, stiffness: 380, damping: 36, mass: 0.85 };
 
 export function Fab() {
-  const addWidget = useBoard((s) => s.addWidget);
-  const [open, setOpen] = useState(false);
-  const [category, setCategory] = useState<Category>('finance');
-  const [presetName, setPresetName] = useState(SIZE_PRESETS[0].name);
-
-  function create() {
-    const preset = SIZE_PRESETS.find((p) => p.name === presetName)!;
-    addWidget(category, preset.w, preset.h);
-    setOpen(false);
-  }
+  const fabOpen = useDragStore((s) => s.fabOpen);
+  const setFabOpen = useDragStore((s) => s.setFabOpen);
 
   return (
-    <>
-      {open && (
-        <div className={`${styles.popover} glass`}>
-          <div className={styles.label}>Category</div>
-          <div className={styles.grid}>
-            {CATEGORIES.map((c) => (
-              <button key={c} className={styles.opt} data-on={category === c} onClick={() => setCategory(c)}>
-                {c}
-              </button>
-            ))}
-          </div>
-          <div className={styles.label} style={{ marginTop: 14 }}>Size</div>
-          <div className={styles.grid}>
-            {SIZE_PRESETS.map((p) => (
-              <button key={p.name} className={styles.opt} data-on={presetName === p.name} onClick={() => setPresetName(p.name)}>
-                {p.name}
-              </button>
-            ))}
-          </div>
-          <button className={styles.create} onClick={create}>Add widget</button>
-        </div>
-      )}
-      <button className={styles.fab} onClick={() => setOpen((o) => !o)} aria-label="add widget">
-        +
-      </button>
-    </>
+    <div className={styles.anchor}>
+      <AnimatePresence>
+        {fabOpen && (
+          <motion.div
+            data-testid="fab-backdrop"
+            key="backdrop"
+            className={styles.backdrop}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setFabOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="popLayout">
+        {!fabOpen ? (
+          <motion.button
+            key="fab-btn"
+            layoutId="fab-morph"
+            className={styles.fabBtn}
+            aria-label="Open widget carousel"
+            onClick={() => setFabOpen(true)}
+            transition={SPRING_CLOSE}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
+          >
+            +
+          </motion.button>
+        ) : (
+          <motion.div
+            key="fab-carousel"
+            layoutId="fab-morph"
+            transition={SPRING_OPEN}
+            style={{ transformOrigin: 'bottom right' }}
+          >
+            <WidgetCarousel onClose={() => setFabOpen(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
