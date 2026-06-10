@@ -87,15 +87,19 @@ For `'insert'` and `'none'`, the target position comes from the hit widget's com
 
 ### Immediate reflow on pickup (`handleDragStart`)
 
-On drag start, immediately compute and set a preview layout:
+On drag start, immediately compute and set a preview layout. To guarantee other widgets reflow into the gap, pack without the active widget first, then re-insert it at its original position so `DropPreview` can find it:
 
 ```ts
 const widget = committed.find(w => w.id === activeId)!;
-const previewLayout = strategy.preview(committed, { kind: 'drag', id: activeId, x: widget.x, y: widget.y });
+const withoutActive = strategy.preview(
+  committed.filter(w => w.id !== activeId),
+  { kind: 'add', widget } // or packDense directly — implementation detail
+);
+const previewLayout = [...withoutActive, widget]; // active widget tracked but not rendered on board
 setDragState({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
 ```
 
-This closes the source slot immediately — the board reflowed from the first frame of the drag.
+The board renders all widgets in `previewLayout` **except** `activeId` (that widget is in `DragOverlay`). Other widgets reflow into the gap immediately. `DropPreview` reads `activeId`'s position from `previewLayout` to know where to render the dotted outline.
 
 ---
 
@@ -158,7 +162,9 @@ No repacking step — sizes match, so there's no collision risk.
 if (dragState.targetKind === 'swap') {
   boardStore.swapWidgets(dragState.activeId, dragState.targetId!);
 } else {
-  boardStore.moveWidget(dragState.activeId, targetPosition);
+  // final position is wherever activeId landed in the last previewLayout
+  const { x, y } = dragState.previewLayout.find(w => w.id === dragState.activeId)!;
+  boardStore.moveWidget(dragState.activeId, { x, y });
 }
 setDragState({ phase: 'idle' });
 ```
