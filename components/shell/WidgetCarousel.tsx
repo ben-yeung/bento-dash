@@ -1,0 +1,78 @@
+'use client';
+import { useState } from 'react';
+import { AnimatePresence } from 'motion/react';
+import styles from './WidgetCarousel.module.css';
+import { CarouselCard } from './CarouselCard';
+import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
+import { useBoard } from '@/lib/state/boardStore';
+import type { Category } from '@/lib/grid/types';
+import type { GridMetrics } from '@/lib/grid/collision';
+
+const ALL_FILTERS: Array<{ label: string; value: Category | null }> = [
+  { label: 'All', value: null },
+  { label: 'Finance', value: 'finance' },
+  { label: 'Health', value: 'health' },
+  { label: 'Calendar', value: 'calendar' },
+  { label: 'Lifestyle', value: 'lifestyle' },
+];
+
+const STUB_METRICS: GridMetrics = { cellSize: 80, gap: 12, cols: 6 };
+
+interface WidgetCarouselProps {
+  onClose: () => void;
+}
+
+export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
+  const addWidget = useBoard((s) => s.addWidget);
+  const [activeFilter, setActiveFilter] = useState<Category | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+
+  const visibleDefs = activeFilter
+    ? WIDGET_REGISTRY.filter((d) => d.category === activeFilter)
+    : WIDGET_REGISTRY;
+
+  function handleAdd(category: Category, w: number, h: number) {
+    addWidget(category, w, h);
+    onClose();
+  }
+
+  return (
+    <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.header}>
+        <span className={styles.title}>Add widget</span>
+        <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <div className={styles.filters}>
+        {ALL_FILTERS.map((f) => (
+          <button
+            key={f.label}
+            className={styles.filterChip}
+            data-active={activeFilter === f.value}
+            onClick={() => setActiveFilter(f.value)}
+            aria-label={`Filter: ${f.label}`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.cards}>
+        <AnimatePresence>
+          {visibleDefs.map((def) => (
+            <CarouselCard
+              key={def.type}
+              definition={def}
+              metrics={STUB_METRICS}
+              isOpen={selectedType === def.type}
+              onToggle={() => setSelectedType(selectedType === def.type ? null : def.type)}
+              onAdd={(w, h) => handleAdd(def.category, w, h)}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
