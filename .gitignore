@@ -1,3 +1,7 @@
 .superpowers/
 node_modules/
 .next/
+
+# Read-only dashboard mirror of docs/superpowers, auto-populated by
+# .claude/hooks/mirror-plans.ps1 so you can see all plans at a glance from main
+/_plans-overview/

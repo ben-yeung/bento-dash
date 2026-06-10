@@ -1,1 +1,42 @@
-{"worktree": {"bgIsolation": "none"}}
+{
+  "worktree": { "bgIsolation": "none", "baseRef": "head" },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\mirror-plans.ps1\"",
+            "statusMessage": "Mirroring plan to dashboard"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\mirror-plans.ps1\"",
+            "statusMessage": "Resyncing plans dashboard"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\mirror-plans.ps1\"",
+            "statusMessage": "Resyncing plans dashboard"
+          }
+        ]
+      }
+    ]
+  }
+}
