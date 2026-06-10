@@ -28,10 +28,5 @@ export interface LayoutStrategy {
 
 export type DragState =
   | { phase: 'idle' }
-  | {
-      phase: 'dragging';
-      activeId: string;
-      targetKind: 'none' | 'insert' | 'swap';
-      targetId?: string; // only set when targetKind === 'swap'
-      previewLayout: WidgetLayout[];
-    };
+  | { phase: 'dragging'; activeId: string; targetKind: 'none' | 'insert'; previewLayout: WidgetLayout[] }
+  | { phase: 'dragging'; activeId: string; targetKind: 'swap'; targetId: string; previewLayout: WidgetLayout[] };
