@@ -18,5 +18,7 @@ describe('uiStore', () => {
   it('setManageMode sets the flag explicitly', () => {
     useUi.getState().setManageMode(true);
     expect(useUi.getState().manageMode).toBe(true);
+    useUi.getState().setManageMode(false);
+    expect(useUi.getState().manageMode).toBe(false);
   });
 });
