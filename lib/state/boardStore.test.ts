@@ -40,4 +40,22 @@ describe('boardStore', () => {
     expect(ws).toHaveLength(1);
     expect(ws[0]).toMatchObject({ x: 4, y: 0 });
   });
+
+  it('prunes activeTags when the last widget of an active tag is removed', () => {
+    useSettings.setState({ activeTags: ['finance', 'health'] });
+    useBoard.getState().addWidget('finance', 1, 1);
+    useBoard.getState().addWidget('health', 1, 1);
+    const healthId = useBoard.getState().widgets.find((w) => w.category === 'health')!.id;
+    useBoard.getState().removeWidget(healthId);
+    expect(useSettings.getState().activeTags).toEqual(['finance']);
+  });
+
+  it('leaves activeTags untouched when the removed widget tag still has siblings', () => {
+    useSettings.setState({ activeTags: ['finance'] });
+    useBoard.getState().addWidget('finance', 1, 1);
+    useBoard.getState().addWidget('finance', 1, 1);
+    const id = useBoard.getState().widgets[0].id;
+    useBoard.getState().removeWidget(id);
+    expect(useSettings.getState().activeTags).toEqual(['finance']);
+  });
 });

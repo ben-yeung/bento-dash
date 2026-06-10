@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 import styles from './Widget.module.css';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
+import { useBoard } from '@/lib/state/boardStore';
 import type { WidgetLayout } from '@/lib/grid/types';
 
 interface WidgetProps {
@@ -11,6 +12,7 @@ interface WidgetProps {
   dragging?: boolean;
   dimmed?: boolean;
   interactive?: boolean;
+  manageMode?: boolean;
   children?: ReactNode;
 }
 
@@ -19,8 +21,10 @@ export function Widget({
   dragging = false,
   dimmed = false,
   interactive = true,
+  manageMode = false,
   children,
 }: WidgetProps) {
+  const removeWidget = useBoard((s) => s.removeWidget);
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: widget.id,
     disabled: !interactive,
@@ -49,6 +53,22 @@ export function Widget({
     >
       {ContentComponent && (
         <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
+      )}
+      {/* TODO(manage-mode-x-exit-anim): the × mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
+      {manageMode && (
+        <motion.button
+          type="button"
+          className={styles.close}
+          aria-label="Delete widget"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          // Stop the pointer-down from reaching the tile's drag listeners,
+          // so clicking × never starts a drag.
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => removeWidget(widget.id)}
+        >
+          ×
+        </motion.button>
       )}
       {children}
     </motion.div>

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Category, WidgetLayout } from '@/lib/grid/types';
 import { getStrategy } from '@/lib/grid/engine';
+import { presentCategories, reconcileActiveTags } from '@/lib/grid/categories';
 import { useSettings } from './settingsStore';
 import { seedWidgets } from '@/lib/data/seed';
 
@@ -47,8 +48,17 @@ export const useBoard = create<BoardState>()(
         };
         set({ widgets: strategy().preview(get().widgets, { kind: 'add', widget }) });
       },
-      removeWidget: (id) =>
-        set({ widgets: strategy().preview(get().widgets, { kind: 'remove', id }) }),
+      removeWidget: (id) => {
+        const widgets = strategy().preview(get().widgets, { kind: 'remove', id });
+        set({ widgets });
+        // Smart filter: if that was the last widget of a tag the user is
+        // filtering on, drop the now-empty tag so the filter can't stick.
+        const { activeTags } = useSettings.getState();
+        const reconciled = reconcileActiveTags(activeTags, presentCategories(widgets));
+        if (reconciled.length !== activeTags.length) {
+          useSettings.setState({ activeTags: reconciled });
+        }
+      },
     }),
     // TODO(persist-hydration): both stores persist without skipHydration, while BentoBoard
     // is prerendered with seed state on the server. When persisted localStorage differs from

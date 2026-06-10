@@ -8,6 +8,7 @@ import { ResizeHandle } from './ResizeHandle';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
+import { useUi } from '@/lib/state/uiStore';
 import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
 import { useDragResize } from '@/lib/hooks/useDragResize';
 import type { WidgetLayout } from '@/lib/grid/types';
@@ -28,6 +29,7 @@ interface WidgetWithResizeProps {
   activeId: string | null;
   resizingId: string | null;
   interactionsLocked: boolean;
+  manageMode: boolean;
   setPreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
@@ -47,6 +49,7 @@ function WidgetWithResize({
   activeId,
   resizingId,
   interactionsLocked,
+  manageMode,
   setPreview,
   setResizingId,
   resizeWidget,
@@ -69,6 +72,7 @@ function WidgetWithResize({
       dragging={w.id === activeId}
       dimmed={dimmed}
       interactive={resizingId === null && !interactionsLocked}
+      manageMode={manageMode}
     >
       {!interactionsLocked && (
         <ResizeHandle
@@ -89,6 +93,7 @@ export function BentoBoard({ boardRef, metrics }: BentoBoardProps) {
   const committed = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
+  const manageMode = useUi((s) => s.manageMode);
   const activeTags = useSettings((s) => s.activeTags);
   const filterMode = useSettings((s) => s.filterMode);
 
@@ -142,6 +147,7 @@ export function BentoBoard({ boardRef, metrics }: BentoBoardProps) {
               activeId={activeId}
               resizingId={resizingId}
               interactionsLocked={interactionsLocked}
+              manageMode={manageMode}
               setPreview={setPreview}
               setResizingId={setResizingId}
               resizeWidget={resizeWidget}
