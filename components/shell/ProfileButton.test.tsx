@@ -21,7 +21,7 @@ describe('ProfileButton', () => {
   it('opens settings modal directly on click (no dropdown)', async () => {
     render(<ProfileButton />);
     await userEvent.click(screen.getByRole('button', { name: /profile/i }));
-    expect(screen.getByRole('dialog', { name: /settings/i })).toBeTruthy();
+    expect(screen.getByRole('dialog', { name: /settings/i })).not.toBeNull();
   });
 
   it('does not show a dropdown after click', async () => {
