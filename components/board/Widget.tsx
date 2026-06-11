@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
@@ -14,6 +14,8 @@ interface WidgetProps {
   interactive?: boolean;
   isSwapTarget?: boolean;
   manageMode?: boolean;
+  resizing?: boolean;
+  snapTarget?: string | null;
   children?: ReactNode;
 }
 
@@ -24,6 +26,8 @@ export function Widget({
   interactive = true,
   isSwapTarget = false,
   manageMode = false,
+  resizing = false,
+  snapTarget = null,
   children,
 }: WidgetProps) {
   const removeWidget = useBoard((s) => s.removeWidget);
@@ -40,12 +44,17 @@ export function Widget({
     <motion.div
       layout
       layoutId={widget.id}
-      transition={{ type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }}
+      transition={
+        resizing
+          ? { duration: 0 }
+          : { type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }
+      }
       className={styles.tile}
       style={style}
       data-dragging={dragging}
       data-dimmed={dimmed}
       data-swap-target={isSwapTarget}
+      data-resizing={resizing}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
@@ -54,7 +63,10 @@ export function Widget({
       {...attributes}
     >
       <WidgetSkeleton category={widget.category} w={widget.w} h={widget.h} />
-      {/* TODO(manage-mode-x-exit-anim): the × mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
+      {snapTarget && (
+        <span className={styles.snapBadge}>{snapTarget}</span>
+      )}
+      {/* TODO(manage-mode-x-exit-anim): the Ã— mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
       {manageMode && (
         <motion.button
           type="button"
@@ -65,7 +77,7 @@ export function Widget({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => removeWidget(widget.id)}
         >
-          ×
+          Ã—
         </motion.button>
       )}
       {children}

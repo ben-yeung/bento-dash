@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { LayoutGroup, AnimatePresence } from 'motion/react';
 import styles from './BentoBoard.module.css';
@@ -9,6 +9,7 @@ import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
 import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
+import { nearestPreset, type SizePreset } from '@/lib/grid/sizes';
 import { useUi } from '@/lib/state/uiStore';
 import { useDragResize } from '@/lib/hooks/useDragResize';
 import type { WidgetLayout, DragState } from '@/lib/grid/types';
@@ -38,7 +39,7 @@ interface WidgetWithResizeProps {
 
 // Defined at module scope (NOT inside BentoBoard) so its type identity is stable
 // across renders. If it were declared in the render body, every setPreview/setResizingId
-// update would remount the whole widget subtree — which drops the resize handle's
+// update would remount the whole widget subtree â€” which drops the resize handle's
 // pointer capture mid-gesture (lostpointercapture) and breaks live resize. Stable
 // identity lets React reconcile instead, so the captured DOM node survives.
 function WidgetWithResize({
@@ -55,18 +56,25 @@ function WidgetWithResize({
   setResizingId,
   resizeWidget,
 }: WidgetWithResizeProps) {
+  const [snapTarget, setSnapTarget] = useState<SizePreset | null>(null);
+
   const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
     startW: w.w,
     startH: w.h,
     metrics,
     onPreview: (nw, nh) =>
       setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+    onIndicator: setSnapTarget,
     onCommit: (nw, nh) => {
       resizeWidget(w.id, nw, nh);
       setResizingId(null);
       setResizePreview(null);
+      setSnapTarget(null);
     },
   });
+
+  const isResizing = resizingId === w.id;
+
   return (
     <Widget
       widget={w}
@@ -74,12 +82,15 @@ function WidgetWithResize({
       interactive={resizingId === null && !interactionsLocked}
       isSwapTarget={isSwapTarget}
       manageMode={manageMode}
+      resizing={isResizing}
+      snapTarget={isResizing ? (snapTarget?.name ?? null) : null}
     >
       {!interactionsLocked && (
         <ResizeHandle
           onPointerDown={(e) => {
             setResizingId(w.id);
             setResizePreview(committed);
+            setSnapTarget(nearestPreset(w.w, w.h));
             onPointerDown(e);
           }}
           onPointerMove={onPointerMove}
@@ -118,7 +129,7 @@ export function BentoBoard({
   // hide mode: show only matches, re-resolved to pack tight. dim mode: show all.
   // TODO(layout-reresolve): switching layoutMode (autoPack<->pushCompact) only affects
   // subsequent mutations; the current board isn't recompacted until the next drag/resize.
-  // boardStore.reResolve() exists for this — wire a useSettings.subscribe effect to call it
+  // boardStore.reResolve() exists for this â€” wire a useSettings.subscribe effect to call it
   // on layoutMode change. anchor: lib/state/boardStore.ts (reResolve)
   const widgets =
     filtering && filterMode === 'hide'
