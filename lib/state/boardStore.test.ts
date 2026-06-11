@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useBoard } from './boardStore';
+import { seedWidgets } from '@/lib/data/seed';
 import { useSettings } from './settingsStore';
 
 describe('boardStore', () => {
@@ -69,5 +70,26 @@ describe('boardStore', () => {
     const after = useBoard.getState().widgets;
     expect(after.find((w) => w.id === a.id)).toMatchObject({ x: b.x, y: b.y });
     expect(after.find((w) => w.id === b.id)).toMatchObject({ x: a.x, y: a.y });
+  });
+
+  describe('resetBoard', () => {
+    beforeEach(() => {
+      useSettings.setState({ layoutMode: 'autoPack' } as any);
+      useBoard.setState({ widgets: seedWidgets() });
+    });
+
+    it('resetBoard restores widgets to the seed set', () => {
+      useBoard.getState().removeWidget('seed-0');
+      expect(useBoard.getState().widgets.length).toBeLessThan(seedWidgets().length);
+      useBoard.getState().resetBoard();
+      expect(useBoard.getState().widgets.length).toBe(seedWidgets().length);
+    });
+
+    it('resetBoard restores seed widget categories in order', () => {
+      useBoard.getState().resetBoard();
+      const cats = useBoard.getState().widgets.map((w) => w.category);
+      const seedCats = seedWidgets().map((w) => w.category);
+      expect(cats).toEqual(seedCats);
+    });
   });
 });

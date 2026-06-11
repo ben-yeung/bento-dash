@@ -24,6 +24,7 @@ interface BoardState {
   addWidget: (category: Category, w: number, h: number, targetCell?: { x: number; y: number }) => void;
   removeWidget: (id: string) => void;
   swapWidgets: (id: string, targetId: string) => void;
+  resetBoard: () => void;
 }
 
 export const useBoard = create<BoardState>()(
@@ -51,6 +52,7 @@ export const useBoard = create<BoardState>()(
       },
       swapWidgets: (id, targetId) =>
         set({ widgets: strategy().preview(get().widgets, { kind: 'swap', id, targetId }) }),
+      resetBoard: () => set({ widgets: strategy().resolve(seedWidgets()) }),
       removeWidget: (id) => {
         const widgets = strategy().preview(get().widgets, { kind: 'remove', id });
         set({ widgets });
