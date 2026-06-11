@@ -7,7 +7,7 @@ import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import type { GridMetrics } from '@/lib/grid/collision';
 
 const metrics: GridMetrics = { cellSize: 100, gap: 12, cols: 6 };
-const def = WIDGET_REGISTRY.find((d) => d.type === 'finance')!;
+const def = WIDGET_REGISTRY.find((d) => d.type === 'budget-summary')!;
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <DndContext>{children}</DndContext>;
@@ -20,7 +20,7 @@ describe('CarouselCard', () => {
         <CarouselCard definition={def} metrics={metrics} isOpen={false} onToggle={vi.fn()} onAdd={vi.fn()} />
       </Wrapper>,
     );
-    expect(screen.getByText('Finance')).toBeDefined();
+    expect(screen.getByText('Budget Summary')).toBeDefined();
   });
 
   it('calls onToggle when the card preview is clicked', async () => {
@@ -30,7 +30,7 @@ describe('CarouselCard', () => {
         <CarouselCard definition={def} metrics={metrics} isOpen={false} onToggle={onToggle} onAdd={vi.fn()} />
       </Wrapper>,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Finance/i }));
+    await userEvent.click(screen.getByRole('button', { name: /Budget Summary/i }));
     expect(onToggle).toHaveBeenCalledOnce();
   });
 

@@ -3,7 +3,11 @@ import type { Category } from '@/lib/grid/types';
 import { SIZE_PRESETS, type SizePreset } from '@/lib/grid/sizes';
 import type React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { TrendingUp, Heart, CalendarDays, Sparkles } from 'lucide-react';
+import {
+  TrendingUp, Activity, Flame, Footprints,
+  CalendarDays, Calendar, Clock,
+  CheckCircle, CloudSun, Pencil,
+} from 'lucide-react';
 
 export type { WidgetContentProps };
 
@@ -14,48 +18,105 @@ export interface WidgetDefinition {
   accentColor: string;
   icon: LucideIcon;
   supportedSizes: SizePreset[];
-  // TODO(widget-content): replace WidgetSkeleton with per-type content components when real content is built.
-  //   sites: components/widgets/WidgetSkeleton.tsx, components/board/Widget.tsx
+  // TODO(widget-content): ContentComponent is WidgetSkeleton until each type's component is built in Tasks 7-16.
   ContentComponent: React.ComponentType<WidgetContentProps>;
 }
 
 const p = (name: string): SizePreset => SIZE_PRESETS.find((s) => s.name === name)!;
 
 export const WIDGET_REGISTRY: WidgetDefinition[] = [
+  // Finance
   {
-    type: 'finance',
-    label: 'Finance',
+    type: 'budget-summary',
+    label: 'Budget Summary',
     category: 'finance',
     accentColor: '#6366f1',
     icon: TrendingUp,
-    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2'), p('4×2')],
+    supportedSizes: [p('1×1'), p('2×2'), p('3×2'), p('4×2')],
     ContentComponent: WidgetSkeleton,
   },
+  // Health
   {
-    type: 'health',
-    label: 'Health',
+    type: 'activity-rings',
+    label: 'Activity Rings',
     category: 'health',
-    accentColor: '#10b981',
-    icon: Heart,
-    supportedSizes: [p('1×1'), p('2×2'), p('2×3')],
+    accentColor: '#ff6b6b',
+    icon: Activity,
+    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
     ContentComponent: WidgetSkeleton,
   },
   {
-    type: 'calendar',
-    label: 'Calendar',
+    type: 'calorie-tracker',
+    label: 'Calories',
+    category: 'health',
+    accentColor: '#ff6b6b',
+    icon: Flame,
+    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
+    ContentComponent: WidgetSkeleton,
+  },
+  {
+    type: 'steps',
+    label: 'Steps',
+    category: 'health',
+    accentColor: '#38bdf8',
+    icon: Footprints,
+    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
+    ContentComponent: WidgetSkeleton,
+  },
+  // Calendar
+  {
+    type: 'upcoming-events',
+    label: 'Upcoming Events',
     category: 'calendar',
-    accentColor: '#f59e0b',
+    accentColor: '#3b82f6',
     icon: CalendarDays,
-    supportedSizes: [p('1×2'), p('2×3'), p('3×3')],
+    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
     ContentComponent: WidgetSkeleton,
   },
   {
-    type: 'lifestyle',
-    label: 'Lifestyle',
+    type: 'mini-calendar',
+    label: 'Mini Calendar',
+    category: 'calendar',
+    accentColor: '#3b82f6',
+    icon: Calendar,
+    supportedSizes: [p('1×1'), p('2×2'), p('3×2'), p('3×3')],
+    ContentComponent: WidgetSkeleton,
+  },
+  {
+    type: 'todays-schedule',
+    label: "Today's Schedule",
+    category: 'calendar',
+    accentColor: '#3b82f6',
+    icon: Clock,
+    supportedSizes: [p('1×2'), p('2×2'), p('2×3')],
+    ContentComponent: WidgetSkeleton,
+  },
+  // Lifestyle
+  {
+    type: 'habit-tracker',
+    label: 'Habit Tracker',
     category: 'lifestyle',
-    accentColor: '#ec4899',
-    icon: Sparkles,
-    supportedSizes: [p('1×1'), p('2×1'), p('3×2'), p('4×4')],
+    accentColor: '#10b981',
+    icon: CheckCircle,
+    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
+    ContentComponent: WidgetSkeleton,
+  },
+  {
+    type: 'weather',
+    label: 'Weather',
+    category: 'lifestyle',
+    accentColor: '#38bdf8',
+    icon: CloudSun,
+    supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
+    ContentComponent: WidgetSkeleton,
+  },
+  {
+    type: 'daily-note',
+    label: 'Daily Note',
+    category: 'lifestyle',
+    accentColor: '#6366f1',
+    icon: Pencil,
+    supportedSizes: [p('1×1'), p('2×2'), p('2×3'), p('3×2')],
     ContentComponent: WidgetSkeleton,
   },
 ];
