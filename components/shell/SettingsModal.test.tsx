@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal } from './SettingsModal';
 import { useSettings } from '@/lib/state/settingsStore';
@@ -74,5 +74,13 @@ describe('SettingsModal', () => {
     await userEvent.click(screen.getByRole('button', { name: /change avatar/i }));
     expect(screen.queryByRole('textbox', { name: /display name/i })).toBeNull();
     expect(screen.getByRole('textbox', { name: /avatar url/i })).toBeInTheDocument();
+  });
+
+  it('custom color picker updates accent in store', () => {
+    render(<SettingsModal onClose={() => {}} />);
+    const picker = screen.getByLabelText(/custom accent color/i) as HTMLInputElement;
+    // fireEvent.change — userEvent doesn't drive <input type="color">
+    fireEvent.change(picker, { target: { value: '#abcdef' } });
+    expect(useSettings.getState().accent).toBe('#abcdef');
   });
 });

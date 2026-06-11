@@ -195,3 +195,13 @@
   background: var(--border-hairline);
   margin: 4px 0 18px;
 }
+
+.colorPicker {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--border-hairline);
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}

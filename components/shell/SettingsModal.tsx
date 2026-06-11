@@ -193,7 +193,13 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 aria-label={`accent ${c}`}
               />
             ))}
-            {/* TODO(accent-custom-picker): add an <input type="color"> custom picker beside the preset swatches; wire to s.setAccent. */}
+            <input
+              type="color"
+              className={styles.colorPicker}
+              value={s.accent}
+              onChange={(e) => s.setAccent(e.target.value)}
+              aria-label="custom accent color"
+            />
           </div>
         </div>
 
