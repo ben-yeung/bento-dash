@@ -31,7 +31,7 @@ describe('useDragResize', () => {
       useDragResize({ startW: 2, startH: 2, metrics, onPreview, onIndicator, onCommit }),
     );
     act(() => result.current.onPointerDown(makePointer(0, 0)));
-    // drag one cell right: raw = 3×2 (not a preset, but preview should fire)
+    // drag one cell right: raw = 3×2 (a preset — but preview fires at every cell, not just presets)
     act(() => result.current.onPointerMove(makePointer(112, 0)));
     expect(onPreview).toHaveBeenCalledWith(3, 2);
     // drag another cell right: raw = 4×2 (a preset: 4×2 exists)
