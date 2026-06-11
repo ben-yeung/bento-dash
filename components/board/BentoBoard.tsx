@@ -9,6 +9,7 @@ import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
 import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
+import { nearestPreset, type SizePreset } from '@/lib/grid/sizes';
 import { useUi } from '@/lib/state/uiStore';
 import { useDragResize } from '@/lib/hooks/useDragResize';
 import type { WidgetLayout, DragState } from '@/lib/grid/types';
@@ -61,18 +62,25 @@ function WidgetWithResize({
   onMount,
   onUnmount,
 }: WidgetWithResizeProps) {
+  const [snapTarget, setSnapTarget] = useState<SizePreset | null>(null);
+
   const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
     startW: w.w,
     startH: w.h,
     metrics,
     onPreview: (nw, nh) =>
       setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+    onIndicator: setSnapTarget,
     onCommit: (nw, nh) => {
       resizeWidget(w.id, nw, nh);
       setResizingId(null);
       setResizePreview(null);
+      setSnapTarget(null);
     },
   });
+
+  const isResizing = resizingId === w.id;
+
   return (
     <Widget
       widget={w}
@@ -80,6 +88,8 @@ function WidgetWithResize({
       interactive={resizingId === null && !interactionsLocked}
       isSwapTarget={isSwapTarget}
       manageMode={manageMode}
+      resizing={isResizing}
+      snapTarget={isResizing ? (snapTarget?.name ?? null) : null}
       onMount={onMount}
       onUnmount={onUnmount}
     >
@@ -88,6 +98,7 @@ function WidgetWithResize({
           onPointerDown={(e) => {
             setResizingId(w.id);
             setResizePreview(committed);
+            setSnapTarget(nearestPreset(w.w, w.h));
             onPointerDown(e);
           }}
           onPointerMove={onPointerMove}
