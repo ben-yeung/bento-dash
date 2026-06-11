@@ -8,6 +8,14 @@ export type FilterMode = 'hide' | 'dim';
 
 export const ACCENT_PRESETS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#ef4444'];
 
+export const SETTINGS_DEFAULTS = {
+  theme: 'dark' as Theme,
+  layoutMode: 'autoPack' as LayoutMode,
+  filterMode: 'hide' as FilterMode,
+  activeTags: [] as Category[],
+  accent: '#6366f1',
+};
+
 interface SettingsState {
   theme: Theme;
   layoutMode: LayoutMode;
@@ -19,16 +27,13 @@ interface SettingsState {
   setFilterMode: (f: FilterMode) => void;
   toggleTag: (c: Category) => void;
   setAccent: (a: string) => void;
+  resetSettings: () => void;
 }
 
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
-      theme: 'dark',
-      layoutMode: 'autoPack',
-      filterMode: 'hide',
-      activeTags: [],
-      accent: '#6366f1',
+      ...SETTINGS_DEFAULTS,
       setTheme: (theme) => set({ theme }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
       setFilterMode: (filterMode) => set({ filterMode }),
@@ -39,6 +44,7 @@ export const useSettings = create<SettingsState>()(
             : [...s.activeTags, c],
         })),
       setAccent: (accent) => set({ accent }),
+      resetSettings: () => set(SETTINGS_DEFAULTS),
     }),
     { name: 'bento-settings' },
   ),
