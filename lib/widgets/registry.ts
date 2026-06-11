@@ -3,6 +3,9 @@ import { BudgetSummary } from '@/components/widgets/content/budget-summary';
 import { ActivityRings } from '@/components/widgets/content/activity-rings';
 import { CalorieTracker } from '@/components/widgets/content/calorie-tracker';
 import { Steps } from '@/components/widgets/content/steps';
+import { UpcomingEvents } from '@/components/widgets/content/upcoming-events';
+import { MiniCalendar } from '@/components/widgets/content/mini-calendar';
+import { TodaysSchedule } from '@/components/widgets/content/todays-schedule';
 import type { Category } from '@/lib/grid/types';
 import { SIZE_PRESETS, type SizePreset } from '@/lib/grid/sizes';
 import type React from 'react';
@@ -75,7 +78,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#3b82f6',
     icon: CalendarDays,
     supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: UpcomingEvents,
   },
   {
     type: 'mini-calendar',
@@ -84,7 +87,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#3b82f6',
     icon: Calendar,
     supportedSizes: [p('1×1'), p('2×2'), p('3×2'), p('3×3')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: MiniCalendar,
   },
   {
     type: 'todays-schedule',
@@ -93,7 +96,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#3b82f6',
     icon: Clock,
     supportedSizes: [p('1×2'), p('2×2'), p('2×3')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: TodaysSchedule,
   },
   // Lifestyle
   {
