@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 import { X } from 'lucide-react';
 import styles from './Widget.module.css';
+import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
 import { useBoard } from '@/lib/state/boardStore';
 import type { WidgetLayout } from '@/lib/grid/types';
@@ -32,6 +33,8 @@ export function Widget({
   children,
 }: WidgetProps) {
   const removeWidget = useBoard((s) => s.removeWidget);
+  const def = WIDGET_REGISTRY.find((d) => d.type === widget.widgetType);
+  const ContentComponent = def?.ContentComponent ?? WidgetSkeleton;
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: widget.id,
     disabled: !interactive,
@@ -62,7 +65,7 @@ export function Widget({
       {...(interactive ? listeners : {})}
       {...attributes}
     >
-      <WidgetSkeleton category={widget.category} w={widget.w} h={widget.h} />
+      <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
       {snapTarget && (
         <span className={styles.snapBadge}>{snapTarget}</span>
       )}
