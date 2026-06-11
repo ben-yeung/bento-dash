@@ -10,8 +10,8 @@ describe('boardStore', () => {
   });
 
   it('adds a widget and resolves a non-overlapping layout', () => {
-    useBoard.getState().addWidget('finance', 2, 2);
-    useBoard.getState().addWidget('health', 2, 2);
+    useBoard.getState().addWidget('finance', 'budget-summary', 2, 2);
+    useBoard.getState().addWidget('health', 'activity-rings', 2, 2);
     const ws = useBoard.getState().widgets;
     expect(ws).toHaveLength(2);
     expect(ws[0]).toMatchObject({ x: 0, y: 0 });
@@ -19,8 +19,8 @@ describe('boardStore', () => {
   });
 
   it('removes a widget and heals the layout', () => {
-    useBoard.getState().addWidget('finance', 1, 1);
-    useBoard.getState().addWidget('health', 1, 1);
+    useBoard.getState().addWidget('finance', 'budget-summary', 1, 1);
+    useBoard.getState().addWidget('health', 'activity-rings', 1, 1);
     const id = useBoard.getState().widgets[0].id;
     useBoard.getState().removeWidget(id);
     expect(useBoard.getState().widgets).toHaveLength(1);
@@ -28,7 +28,7 @@ describe('boardStore', () => {
   });
 
   it('resizes a widget through the active strategy', () => {
-    useBoard.getState().addWidget('finance', 1, 1);
+    useBoard.getState().addWidget('finance', 'budget-summary', 1, 1);
     const id = useBoard.getState().widgets[0].id;
     useBoard.getState().resizeWidget(id, 3, 3);
     expect(useBoard.getState().widgets[0]).toMatchObject({ w: 3, h: 3 });
@@ -36,7 +36,7 @@ describe('boardStore', () => {
 
   it('places a widget at the target cell when targetCell is provided (pushCompact)', () => {
     useSettings.setState({ layoutMode: 'pushCompact' });
-    useBoard.getState().addWidget('calendar', 1, 1, { x: 4, y: 0 });
+    useBoard.getState().addWidget('calendar', 'todays-schedule', 1, 1, { x: 4, y: 0 });
     const ws = useBoard.getState().widgets;
     expect(ws).toHaveLength(1);
     expect(ws[0]).toMatchObject({ x: 4, y: 0 });
@@ -44,8 +44,8 @@ describe('boardStore', () => {
 
   it('prunes activeTags when the last widget of an active tag is removed', () => {
     useSettings.setState({ activeTags: ['finance', 'health'] });
-    useBoard.getState().addWidget('finance', 1, 1);
-    useBoard.getState().addWidget('health', 1, 1);
+    useBoard.getState().addWidget('finance', 'budget-summary', 1, 1);
+    useBoard.getState().addWidget('health', 'activity-rings', 1, 1);
     const healthId = useBoard.getState().widgets.find((w) => w.category === 'health')!.id;
     useBoard.getState().removeWidget(healthId);
     expect(useSettings.getState().activeTags).toEqual(['finance']);
@@ -53,16 +53,16 @@ describe('boardStore', () => {
 
   it('leaves activeTags untouched when the removed widget tag still has siblings', () => {
     useSettings.setState({ activeTags: ['finance'] });
-    useBoard.getState().addWidget('finance', 1, 1);
-    useBoard.getState().addWidget('finance', 1, 1);
+    useBoard.getState().addWidget('finance', 'budget-summary', 1, 1);
+    useBoard.getState().addWidget('finance', 'budget-summary', 1, 1);
     const id = useBoard.getState().widgets[0].id;
     useBoard.getState().removeWidget(id);
     expect(useSettings.getState().activeTags).toEqual(['finance']);
   });
 
   it('swapWidgets exchanges the positions of two widgets', () => {
-    useBoard.getState().addWidget('finance', 2, 1);
-    useBoard.getState().addWidget('health', 2, 1);
+    useBoard.getState().addWidget('finance', 'budget-summary', 2, 1);
+    useBoard.getState().addWidget('health', 'activity-rings', 2, 1);
     const before = useBoard.getState().widgets;
     const [a, b] = before;
     // autoPack places them at x:0,y:0 and x:2,y:0

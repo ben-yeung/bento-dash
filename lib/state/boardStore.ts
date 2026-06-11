@@ -15,13 +15,21 @@ function newId(): string {
   return `w-${Math.random().toString(36).slice(2)}`;
 }
 
+// Maps legacy category names to a default widgetType for boards persisted before widgetType was added.
+const WIDGET_TYPE_MIGRATION: Record<string, string> = {
+  finance:   'budget-summary',
+  health:    'activity-rings',
+  calendar:  'upcoming-events',
+  lifestyle: 'habit-tracker',
+};
+
 interface BoardState {
   widgets: WidgetLayout[];
   setWidgets: (w: WidgetLayout[]) => void;
   reResolve: () => void;
   moveWidget: (id: string, targetCell: { x: number; y: number }) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
-  addWidget: (category: Category, w: number, h: number, targetCell?: { x: number; y: number }) => void;
+  addWidget: (category: Category, widgetType: string, w: number, h: number, targetCell?: { x: number; y: number }) => void;
   removeWidget: (id: string) => void;
   swapWidgets: (id: string, targetId: string) => void;
   resetBoard: () => void;
@@ -37,7 +45,7 @@ export const useBoard = create<BoardState>()(
         set({ widgets: strategy().preview(get().widgets, { kind: 'drag', id, targetCell }) }),
       resizeWidget: (id, w, h) =>
         set({ widgets: strategy().preview(get().widgets, { kind: 'resize', id, w, h }) }),
-      addWidget: (category, w, h, targetCell) => {
+      addWidget: (category, widgetType, w, h, targetCell) => {
         const order = get().widgets.reduce((max, x) => Math.max(max, x.order), -1) + 1;
         const widget: WidgetLayout = {
           id: newId(),
@@ -46,6 +54,7 @@ export const useBoard = create<BoardState>()(
           w,
           h,
           category,
+          widgetType,
           order,
         };
         set({ widgets: strategy().preview(get().widgets, { kind: 'add', widget }) });
@@ -73,8 +82,13 @@ export const useBoard = create<BoardState>()(
     // effect, or rendering the board only after mount. anchor: lib/state/boardStore.ts
     {
       name: 'bento-board',
-      onRehydrateStorage: () => (state) => {
-        if (state) state.reResolve();
+      onRehydrateStorage: () => (state: BoardState | undefined) => {
+        if (state) {
+          state.widgets = state.widgets.map((w) =>
+            w.widgetType ? w : { ...w, widgetType: WIDGET_TYPE_MIGRATION[w.category] ?? w.category }
+          );
+          state.reResolve();
+        }
       },
     },
   ),
