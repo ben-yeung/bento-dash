@@ -206,3 +206,30 @@
   background: none;
   overflow: hidden;
 }
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.reset {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.resetConfirm {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid #ef4444;
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 13px;
+}

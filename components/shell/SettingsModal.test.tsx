@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal } from './SettingsModal';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useProfile } from '@/lib/state/profileStore';
+import { useBoard } from '@/lib/state/boardStore';
+import { seedWidgets } from '@/lib/data/seed';
 
 describe('SettingsModal', () => {
   beforeEach(() => {
@@ -82,5 +84,26 @@ describe('SettingsModal', () => {
     // fireEvent.change — userEvent doesn't drive <input type="color">
     fireEvent.change(picker, { target: { value: '#abcdef' } });
     expect(useSettings.getState().accent).toBe('#abcdef');
+  });
+
+  it('reset button enters confirmation state on first click', async () => {
+    render(<SettingsModal onClose={() => {}} />);
+    const btn = screen.getByRole('button', { name: /reset to defaults/i });
+    await userEvent.click(btn);
+    expect(screen.getByRole('button', { name: /confirm reset/i })).toBeInTheDocument();
+  });
+
+  it('reset button executes full reset on second click and closes modal', async () => {
+    const onClose = vi.fn();
+    useSettings.getState().setTheme('light');
+    useProfile.getState().setDisplayName('Alice');
+    render(<SettingsModal onClose={onClose} />);
+    const btn = screen.getByRole('button', { name: /reset to defaults/i });
+    await userEvent.click(btn);
+    await userEvent.click(screen.getByRole('button', { name: /confirm reset/i }));
+    expect(useSettings.getState().theme).toBe('dark');
+    expect(useProfile.getState().displayName).toBe('');
+    expect(useBoard.getState().widgets.length).toBe(seedWidgets().length);
+    expect(onClose).toHaveBeenCalled();
   });
 });

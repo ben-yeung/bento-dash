@@ -3,11 +3,13 @@ import { useState, useRef } from 'react';
 import styles from './SettingsModal.module.css';
 import { useSettings, ACCENT_PRESETS } from '@/lib/state/settingsStore';
 import { useProfile } from '@/lib/state/profileStore';
+import { useBoard } from '@/lib/state/boardStore';
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const s = useSettings();
   const p = useProfile();
 
+  const [confirmingReset, setConfirmingReset] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
@@ -203,7 +205,28 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <button className={styles.close} onClick={onClose}>Done</button>
+        <div className={styles.divider} />
+
+        <div className={styles.footer}>
+          <button
+            className={confirmingReset ? styles.resetConfirm : styles.reset}
+            type="button"
+            onBlur={() => setConfirmingReset(false)}
+            onClick={() => {
+              if (!confirmingReset) {
+                setConfirmingReset(true);
+              } else {
+                s.resetSettings();
+                useBoard.getState().resetBoard();
+                p.resetProfile();
+                onClose();
+              }
+            }}
+          >
+            {confirmingReset ? 'Confirm reset — tap again' : 'Reset to defaults'}
+          </button>
+          <button className={styles.close} onClick={onClose} type="button">Done</button>
+        </div>
       </div>
     </div>
   );
