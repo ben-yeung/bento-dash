@@ -149,13 +149,19 @@ export function AppShell() {
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
         setDragState({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
-        const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: hit.x, y: hit.y } });
+        // Cursor left-half of hit widget → insert before it; right-half → insert after it.
+        // Lets a wider widget slip between two narrower ones at any sub-widget position.
+        const stride = metrics.cellSize + metrics.gap;
+        const hitLeftPx = boardRect.left + hit.x * stride;
+        const hitWidthPx = hit.w * metrics.cellSize + (hit.w - 1) * metrics.gap;
+        const insertAfter = clientX - hitLeftPx > hitWidthPx / 2;
+        const targetX = Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
+        const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
         setDragState({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
-      const rect = e.active.rect.current.translated;
-      if (!rect) return;
-      const cell = pointToCell(rect.left - boardRect.left, rect.top - boardRect.top, metrics);
+      // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
+      const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
       const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
       setDragState({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
