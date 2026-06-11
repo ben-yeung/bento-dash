@@ -1,13 +1,159 @@
 'use client';
+import { useState, useRef } from 'react';
 import styles from './SettingsModal.module.css';
 import { useSettings, ACCENT_PRESETS } from '@/lib/state/settingsStore';
+import { useProfile } from '@/lib/state/profileStore';
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const s = useSettings();
+  const p = useProfile();
+
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cancelledRef = useRef(false);
+
+  function openNameEdit() {
+    setNameInput(p.displayName);
+    setAvatarEditorOpen(false);
+    setEditingName(true);
+  }
+
+  function saveName() {
+    if (cancelledRef.current) {
+      cancelledRef.current = false;
+      setEditingName(false);
+      return;
+    }
+    p.setDisplayName(nameInput.trim());
+    setEditingName(false);
+  }
+
+  function openAvatarEditor() {
+    setUrlInput(p.avatarUrl.startsWith('data:') ? '' : p.avatarUrl);
+    setEditingName(false);
+    setAvatarEditorOpen((o) => !o);
+  }
+
+  function applyUrl() {
+    p.setAvatarUrl(urlInput.trim());
+    setAvatarEditorOpen(false);
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result;
+      if (typeof result === 'string') {
+        p.setAvatarUrl(result);
+        setAvatarEditorOpen(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const initial = p.displayName ? p.displayName[0].toUpperCase() : '?';
+
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={`${styles.modal} glass`} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="settings">
+      <div
+        className={`${styles.modal} glass`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="settings"
+      >
         <h2 className={styles.title}>Settings</h2>
+
+        {/* Profile header */}
+        <div className={styles.profileHeader}>
+          <button
+            className={styles.profileAvatar}
+            onClick={openAvatarEditor}
+            aria-label="change avatar"
+            type="button"
+          >
+            <span>{initial}</span>
+            {p.avatarUrl && (
+              <img
+                src={p.avatarUrl}
+                alt=""
+                className={styles.profileAvatarImg}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            <div className={styles.avatarOverlay}>📷</div>
+          </button>
+          <div className={styles.profileInfo}>
+            {editingName ? (
+              <input
+                className={styles.nameInput}
+                value={nameInput}
+                autoFocus
+                onChange={(e) => setNameInput(e.target.value)}
+                onBlur={saveName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveName();
+                  if (e.key === 'Escape') {
+                    cancelledRef.current = true;
+                    setEditingName(false);
+                  }
+                }}
+                aria-label="display name"
+              />
+            ) : (
+              <button
+                className={styles.nameDisplay}
+                onClick={openNameEdit}
+                type="button"
+                aria-label="edit display name"
+              >
+                {p.displayName || 'Set display name'}
+                <span className={styles.pencil}>✎</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {avatarEditorOpen && (
+          <div className={styles.avatarEditor}>
+            <input
+              className={styles.urlInput}
+              placeholder="Paste image URL…"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') applyUrl();
+              }}
+              aria-label="avatar URL"
+            />
+            <button className={styles.applyBtn} onClick={applyUrl} type="button">
+              Apply
+            </button>
+            <button
+              className={styles.uploadBtn}
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+            >
+              Upload
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+              aria-label="upload avatar"
+            />
+          </div>
+        )}
+
+        <div className={styles.divider} />
 
         <div className={styles.row}>
           <div className={styles.label}>Theme</div>
