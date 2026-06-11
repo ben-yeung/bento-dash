@@ -6,6 +6,9 @@ import { Steps } from '@/components/widgets/content/steps';
 import { UpcomingEvents } from '@/components/widgets/content/upcoming-events';
 import { MiniCalendar } from '@/components/widgets/content/mini-calendar';
 import { TodaysSchedule } from '@/components/widgets/content/todays-schedule';
+import { HabitTracker } from '@/components/widgets/content/habit-tracker';
+import { Weather } from '@/components/widgets/content/weather';
+import { DailyNote } from '@/components/widgets/content/daily-note';
 import type { Category } from '@/lib/grid/types';
 import { SIZE_PRESETS, type SizePreset } from '@/lib/grid/sizes';
 import type React from 'react';
@@ -106,7 +109,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#10b981',
     icon: CheckCircle,
     supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: HabitTracker,
   },
   {
     type: 'weather',
@@ -115,7 +118,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#38bdf8',
     icon: CloudSun,
     supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: Weather,
   },
   {
     type: 'daily-note',
@@ -124,6 +127,6 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#6366f1',
     icon: Pencil,
     supportedSizes: [p('1×1'), p('2×2'), p('2×3'), p('3×2')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: DailyNote,
   },
 ];
