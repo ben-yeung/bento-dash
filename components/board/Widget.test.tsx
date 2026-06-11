@@ -8,7 +8,7 @@ import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import type { WidgetLayout } from '@/lib/grid/types';
 
-const w: WidgetLayout = { id: 'x1', x: 0, y: 0, w: 1, h: 1, category: 'finance', order: 0 };
+const w: WidgetLayout = { id: 'x1', x: 0, y: 0, w: 1, h: 1, category: 'finance', widgetType: 'budget-summary', order: 0 };
 
 function renderWidget(props: Partial<ComponentProps<typeof Widget>> = {}) {
   return render(

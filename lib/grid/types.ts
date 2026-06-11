@@ -11,6 +11,7 @@ export interface WidgetLayout {
   w: number; // column span 1..COLS
   h: number; // row span 1..MAX_H
   category: Category;
+  widgetType?: string; // e.g. 'budget-summary', 'activity-rings'
   order: number; // canonical sequence (primary key for autoPack)
 }
 
