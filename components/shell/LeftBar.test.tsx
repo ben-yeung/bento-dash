@@ -19,12 +19,12 @@ describe('LeftBar', () => {
   });
 
   it('renders a chip only for each in-use category', () => {
-    expect(screen.queryByRole('button', { name: 'Fin' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Finance' })).toBeNull();
     render(<LeftBar />);
-    expect(screen.getByRole('button', { name: 'Fin' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Finance' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Health' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Life' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Cal' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Lifestyle' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Calendar' })).toBeNull();
   });
 
   it('drops a chip after its last widget is removed from the board', () => {
@@ -39,9 +39,9 @@ describe('LeftBar', () => {
 
   it('toggles a category tag in the settings store on click', async () => {
     render(<LeftBar />);
-    await userEvent.click(screen.getByRole('button', { name: 'Fin' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Finance' }));
     expect(useSettings.getState().activeTags).toEqual(['finance']);
-    await userEvent.click(screen.getByRole('button', { name: 'Fin' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Finance' }));
     expect(useSettings.getState().activeTags).toEqual([]);
   });
 

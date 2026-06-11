@@ -1,12 +1,11 @@
 'use client';
+import { PencilLine } from 'lucide-react';
 import styles from './LeftBar.module.css';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useUi } from '@/lib/state/uiStore';
 import { useBoard } from '@/lib/state/boardStore';
 import { presentCategories } from '@/lib/grid/categories';
-import type { Category } from '@/lib/grid/types';
-
-const SHORT: Record<Category, string> = { finance: 'Fin', lifestyle: 'Life', health: 'Health', calendar: 'Cal' };
+import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 
 export function LeftBar() {
   const activeTags = useSettings((s) => s.activeTags);
@@ -27,20 +26,26 @@ export function LeftBar() {
         aria-label="Toggle manage mode"
         title="Manage widgets"
       >
-        ✎
+        <PencilLine size={18} />
       </button>
       <div className={styles.divider} />
-      {availableTags.map((c) => (
-        <button
-          key={c}
-          className={styles.chip}
-          data-active={activeTags.includes(c)}
-          onClick={() => toggleTag(c)}
-          aria-pressed={activeTags.includes(c)}
-        >
-          {SHORT[c]}
-        </button>
-      ))}
+      {availableTags.map((c) => {
+        const def = WIDGET_REGISTRY.find((d) => d.category === c)!;
+        const Icon = def.icon;
+        return (
+          // TODO(leftbar-expand): render Icon + def.label side-by-side when sidebar is in expanded mode
+          <button
+            key={c}
+            className={styles.chip}
+            data-active={activeTags.includes(c)}
+            onClick={() => toggleTag(c)}
+            aria-pressed={activeTags.includes(c)}
+            aria-label={def.label}
+          >
+            <Icon size={18} />
+          </button>
+        );
+      })}
     </aside>
   );
 }
