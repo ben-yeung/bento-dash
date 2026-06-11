@@ -9,7 +9,7 @@ interface ProfileState {
   resetProfile: () => void;
 }
 
-const PROFILE_DEFAULTS = { displayName: '', avatarUrl: '' };
+export const PROFILE_DEFAULTS = { displayName: '', avatarUrl: '' };
 
 export const useProfile = create<ProfileState>()(
   persist(

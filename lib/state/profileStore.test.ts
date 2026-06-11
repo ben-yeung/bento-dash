@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useProfile } from './profileStore';
+import { useProfile, PROFILE_DEFAULTS } from './profileStore';
 
 describe('profileStore', () => {
-  beforeEach(() => useProfile.setState({ displayName: '', avatarUrl: '' }));
+  beforeEach(() => useProfile.setState(PROFILE_DEFAULTS));
+
+  it('starts with empty defaults', () => {
+    expect(useProfile.getState()).toMatchObject(PROFILE_DEFAULTS);
+  });
 
   it('setDisplayName updates displayName', () => {
     useProfile.getState().setDisplayName('Alice');
