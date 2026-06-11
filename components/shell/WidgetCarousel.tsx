@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { LayoutGrid, type LucideIcon } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import styles from './WidgetCarousel.module.css';
 import { CarouselCard } from './CarouselCard';
@@ -8,12 +9,15 @@ import { useBoard } from '@/lib/state/boardStore';
 import type { Category } from '@/lib/grid/types';
 import type { GridMetrics } from '@/lib/grid/collision';
 
-const ALL_FILTERS: Array<{ label: string; value: Category | null }> = [
-  { label: 'All', value: null },
-  { label: 'Finance', value: 'finance' },
-  { label: 'Health', value: 'health' },
-  { label: 'Calendar', value: 'calendar' },
-  { label: 'Lifestyle', value: 'lifestyle' },
+interface FilterEntry {
+  label: string;
+  value: Category | null;
+  Icon: LucideIcon;
+}
+
+const ALL_FILTERS: FilterEntry[] = [
+  { label: 'All', value: null, Icon: LayoutGrid },
+  ...WIDGET_REGISTRY.map((d) => ({ label: d.label, value: d.category, Icon: d.icon })),
 ];
 
 const STUB_METRICS: GridMetrics = { cellSize: 80, gap: 12, cols: 6 };
@@ -54,7 +58,7 @@ export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
             onClick={() => setActiveFilter(f.value)}
             aria-label={`Filter: ${f.label}`}
           >
-            {f.label}
+            <f.Icon size={16} />
           </button>
         ))}
       </div>
