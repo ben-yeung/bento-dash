@@ -49,7 +49,7 @@ export function useDragResize({ startW, startH, metrics, supportedSizes, onPrevi
         onIndicator(snap);
       }
     },
-    [metrics, onPreview, onIndicator],
+    [metrics, onPreview, onIndicator, supportedSizes],
   );
 
   const onPointerUp = useCallback(
