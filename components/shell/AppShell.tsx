@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -47,6 +47,16 @@ export function AppShell() {
   const { setPalettePreview, setFabOpen } = useDragStore();
 
   const [dragState, setDragState] = useState<DragState>({ phase: 'idle' });
+
+  // Re-resolve board positions whenever layoutMode changes so widgets
+  // compact correctly under the new strategy immediately.
+  useEffect(() => {
+    return useSettings.subscribe((s, prev) => {
+      if (s.layoutMode !== prev.layoutMode) {
+        useBoard.getState().reResolve();
+      }
+    });
+  }, []);
   // Track palette drag separately (widget drag uses dragState)
   const [paletteActiveId, setPaletteActiveId] = useState<string | null>(null);
 

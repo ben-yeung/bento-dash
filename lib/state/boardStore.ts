@@ -71,6 +71,11 @@ export const useBoard = create<BoardState>()(
     // are covered by the layout.tsx bootstrap script; board widgets and Banner's new Date()
     // are not), risking a hydration warning / brief flash. Consider skipHydration + a rehydrate
     // effect, or rendering the board only after mount. anchor: lib/state/boardStore.ts
-    { name: 'bento-board' },
+    {
+      name: 'bento-board',
+      onRehydrateStorage: () => (state) => {
+        if (state) state.reResolve();
+      },
+    },
   ),
 );

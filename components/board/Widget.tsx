@@ -43,7 +43,6 @@ export function Widget({
   return (
     <motion.div
       layout
-      layoutId={widget.id}
       transition={
         resizing
           ? { duration: 0 }

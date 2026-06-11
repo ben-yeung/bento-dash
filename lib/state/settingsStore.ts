@@ -10,7 +10,7 @@ export const ACCENT_PRESETS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b
 
 export const SETTINGS_DEFAULTS = {
   theme: 'dark' as Theme,
-  layoutMode: 'autoPack' as LayoutMode,
+  layoutMode: 'pushCompact' as LayoutMode,
   filterMode: 'hide' as FilterMode,
   activeTags: [] as Category[],
   accent: '#6366f1',
