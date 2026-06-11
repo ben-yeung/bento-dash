@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Palette } from 'lucide-react';
 import styles from './SettingsModal.module.css';
 import { useSettings, ACCENT_PRESETS } from '@/lib/state/settingsStore';
@@ -64,7 +65,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const initial = p.displayName ? p.displayName[0].toUpperCase() : '?';
 
-  return (
+  const modal = (
     <div className={styles.overlay} onClick={onClose}>
       <div
         className={`${styles.modal} glass`}
@@ -246,4 +247,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
