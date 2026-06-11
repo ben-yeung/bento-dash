@@ -1,5 +1,6 @@
 import { WidgetSkeleton, type WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
 import { BudgetSummary } from '@/components/widgets/content/budget-summary';
+import { ActivityRings } from '@/components/widgets/content/activity-rings';
 import type { Category } from '@/lib/grid/types';
 import { SIZE_PRESETS, type SizePreset } from '@/lib/grid/sizes';
 import type React from 'react';
@@ -44,7 +45,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#ff6b6b',
     icon: Activity,
     supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: ActivityRings,
   },
   {
     type: 'calorie-tracker',
