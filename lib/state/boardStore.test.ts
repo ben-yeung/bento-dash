@@ -58,4 +58,16 @@ describe('boardStore', () => {
     useBoard.getState().removeWidget(id);
     expect(useSettings.getState().activeTags).toEqual(['finance']);
   });
+
+  it('swapWidgets exchanges the positions of two widgets', () => {
+    useBoard.getState().addWidget('finance', 2, 1);
+    useBoard.getState().addWidget('health', 2, 1);
+    const before = useBoard.getState().widgets;
+    const [a, b] = before;
+    // autoPack places them at x:0,y:0 and x:2,y:0
+    useBoard.getState().swapWidgets(a.id, b.id);
+    const after = useBoard.getState().widgets;
+    expect(after.find((w) => w.id === a.id)).toMatchObject({ x: b.x, y: b.y });
+    expect(after.find((w) => w.id === b.id)).toMatchObject({ x: a.x, y: a.y });
+  });
 });

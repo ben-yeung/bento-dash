@@ -18,9 +18,15 @@ export type Move =
   | { kind: 'drag'; id: string; targetCell: { x: number; y: number } }
   | { kind: 'resize'; id: string; w: number; h: number }
   | { kind: 'add'; widget: WidgetLayout }
-  | { kind: 'remove'; id: string };
+  | { kind: 'remove'; id: string }
+  | { kind: 'swap'; id: string; targetId: string };
 
 export interface LayoutStrategy {
   resolve(widgets: WidgetLayout[]): WidgetLayout[];
   preview(widgets: WidgetLayout[], move: Move): WidgetLayout[];
 }
+
+export type DragState =
+  | { phase: 'idle' }
+  | { phase: 'dragging'; activeId: string; targetKind: 'none' | 'insert'; previewLayout: WidgetLayout[] }
+  | { phase: 'dragging'; activeId: string; targetKind: 'swap'; targetId: string; previewLayout: WidgetLayout[] };

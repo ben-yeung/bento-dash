@@ -1,6 +1,7 @@
 import { COLS, type LayoutStrategy, type Move, type WidgetLayout } from '../types';
 import { clampSize } from '../sizes';
 import { createGrid, fits, occupy } from '../occupancy';
+import { applySwap } from '../swap';
 
 export function compactVertical(widgets: WidgetLayout[], cols = COLS): WidgetLayout[] {
   const sorted = [...widgets].sort((a, b) => a.y - b.y || a.x - b.x);
@@ -62,6 +63,8 @@ export const pushCompact: LayoutStrategy = {
         return compactVertical([...widgets, move.widget]);
       case 'remove':
         return compactVertical(widgets.filter((w) => w.id !== move.id));
+      case 'swap':
+        return applySwap(widgets, move.id, move.targetId);
     }
   },
 };

@@ -8,16 +8,19 @@ import { ResizeHandle } from './ResizeHandle';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
-import { useUi } from '@/lib/state/uiStore';
 import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
+import { useUi } from '@/lib/state/uiStore';
 import { useDragResize } from '@/lib/hooks/useDragResize';
-import type { WidgetLayout } from '@/lib/grid/types';
+import type { WidgetLayout, DragState } from '@/lib/grid/types';
 import type { GridMetrics } from '@/lib/grid/collision';
 import type { RefObject } from 'react';
 
 interface BentoBoardProps {
   boardRef: RefObject<HTMLDivElement>;
   metrics: GridMetrics;
+  dragState: DragState;
+  onWidgetMount: (id: string, el: HTMLElement) => void;
+  onWidgetUnmount: (id: string) => void;
 }
 
 interface WidgetWithResizeProps {
@@ -26,13 +29,15 @@ interface WidgetWithResizeProps {
   metrics: GridMetrics;
   committed: WidgetLayout[];
   layoutMode: LayoutMode;
-  activeId: string | null;
+  isSwapTarget: boolean;
   resizingId: string | null;
   interactionsLocked: boolean;
   manageMode: boolean;
-  setPreview: (widgets: WidgetLayout[] | null) => void;
+  setResizePreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
+  onMount: (id: string, el: HTMLElement) => void;
+  onUnmount: (id: string) => void;
 }
 
 // Defined at module scope (NOT inside BentoBoard) so its type identity is stable
@@ -46,39 +51,43 @@ function WidgetWithResize({
   metrics,
   committed,
   layoutMode,
-  activeId,
+  isSwapTarget,
   resizingId,
   interactionsLocked,
   manageMode,
-  setPreview,
+  setResizePreview,
   setResizingId,
   resizeWidget,
+  onMount,
+  onUnmount,
 }: WidgetWithResizeProps) {
   const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
     startW: w.w,
     startH: w.h,
     metrics,
     onPreview: (nw, nh) =>
-      setPreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+      setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
     onCommit: (nw, nh) => {
       resizeWidget(w.id, nw, nh);
       setResizingId(null);
-      setPreview(null);
+      setResizePreview(null);
     },
   });
   return (
     <Widget
       widget={w}
-      dragging={w.id === activeId}
       dimmed={dimmed}
       interactive={resizingId === null && !interactionsLocked}
+      isSwapTarget={isSwapTarget}
       manageMode={manageMode}
+      onMount={onMount}
+      onUnmount={onUnmount}
     >
       {!interactionsLocked && (
         <ResizeHandle
           onPointerDown={(e) => {
             setResizingId(w.id);
-            setPreview(committed);
+            setResizePreview(committed);
             onPointerDown(e);
           }}
           onPointerMove={onPointerMove}
@@ -89,22 +98,30 @@ function WidgetWithResize({
   );
 }
 
-export function BentoBoard({ boardRef, metrics }: BentoBoardProps) {
+export function BentoBoard({
+  boardRef,
+  metrics,
+  dragState,
+  onWidgetMount,
+  onWidgetUnmount,
+}: BentoBoardProps) {
   const committed = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
-  const manageMode = useUi((s) => s.manageMode);
   const activeTags = useSettings((s) => s.activeTags);
   const filterMode = useSettings((s) => s.filterMode);
 
-  const activeId = useDragStore((s) => s.activeId);
-  const preview = useDragStore((s) => s.preview);
+  const manageMode = useUi((s) => s.manageMode);
+
   const palettePreview = useDragStore((s) => s.palettePreview);
-  const setPreview = useDragStore((s) => s.setPreview);
 
   const [resizingId, setResizingId] = useState<string | null>(null);
+  const [resizePreview, setResizePreview] = useState<WidgetLayout[] | null>(null);
 
-  const base = preview ?? committed;
+  const base =
+    dragState.phase === 'dragging'
+      ? dragState.previewLayout
+      : (resizePreview ?? committed);
   const filtering = activeTags.length > 0;
   const matches = (cat: WidgetLayout['category']) => activeTags.includes(cat);
 
@@ -124,8 +141,8 @@ export function BentoBoard({ boardRef, metrics }: BentoBoardProps) {
   const interactionsLocked = filtering && filterMode === 'hide';
 
   const activeWidget =
-    activeId && !activeId.startsWith('palette:')
-      ? widgets.find((w) => w.id === activeId) ?? null
+    dragState.phase === 'dragging'
+      ? dragState.previewLayout.find((w) => w.id === dragState.activeId) ?? null
       : null;
 
   return (
@@ -136,25 +153,41 @@ export function BentoBoard({ boardRef, metrics }: BentoBoardProps) {
     >
       <LayoutGroup>
         <AnimatePresence>
-          {widgets.map((w) => (
-            <WidgetWithResize
-              key={w.id}
-              w={w}
-              dimmed={filtering && filterMode === 'dim' && !matches(w.category)}
-              metrics={metrics}
-              committed={committed}
-              layoutMode={layoutMode}
-              activeId={activeId}
-              resizingId={resizingId}
-              interactionsLocked={interactionsLocked}
-              manageMode={manageMode}
-              setPreview={setPreview}
-              setResizingId={setResizingId}
-              resizeWidget={resizeWidget}
-            />
-          ))}
+          {widgets
+            .filter((w) => !(dragState.phase === 'dragging' && w.id === dragState.activeId))
+            .map((w) => (
+              <WidgetWithResize
+                key={w.id}
+                w={w}
+                dimmed={filtering && filterMode === 'dim' && !matches(w.category)}
+                metrics={metrics}
+                committed={committed}
+                layoutMode={layoutMode}
+                isSwapTarget={
+                  dragState.phase === 'dragging' &&
+                  dragState.targetKind === 'swap' &&
+                  w.id === dragState.targetId
+                }
+                resizingId={resizingId}
+                interactionsLocked={interactionsLocked}
+                manageMode={manageMode}
+                setResizePreview={setResizePreview}
+                setResizingId={setResizingId}
+                resizeWidget={resizeWidget}
+                onMount={onWidgetMount}
+                onUnmount={onWidgetUnmount}
+              />
+            ))}
         </AnimatePresence>
-        {activeWidget && !interactionsLocked && <DropPreview widget={activeWidget} />}
+        {activeWidget &&
+          !interactionsLocked &&
+          dragState.phase === 'dragging' &&
+          dragState.targetKind !== 'swap' && (
+            <DropPreview
+              widget={activeWidget}
+              mode={dragState.targetKind === 'insert' ? 'insert' : 'none'}
+            />
+          )}
         {palettePreview && (
           <DropPreview
             widget={{

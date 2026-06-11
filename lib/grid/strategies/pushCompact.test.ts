@@ -34,4 +34,12 @@ describe('pushCompact', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ h: 2 });
     expect(out.find((w) => w.id === 'b')!.y).toBeGreaterThanOrEqual(2);
   });
+
+  it('preview(swap) exchanges positions without compacting other widgets', () => {
+    const layout = [at('a', 0, 0, 2, 1, 0), at('b', 2, 0, 2, 1, 1), at('c', 4, 0, 2, 1, 2)];
+    const out = pushCompact.preview(layout, { kind: 'swap', id: 'a', targetId: 'b' });
+    expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 2, y: 0 });
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
+    expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 4, y: 0 });
+  });
 });

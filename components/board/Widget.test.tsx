@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { type ComponentProps } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -46,9 +46,39 @@ describe('Widget delete control', () => {
       </DndContext>,
     );
     const close = screen.getByRole('button', { name: 'Delete widget' });
-    // The tile's drag listeners sit on an ancestor; if × stops propagation,
-    // a bubbling parent handler must NOT see the pointer-down.
     fireEvent.pointerDown(close);
     expect(parentSawPointerDown).toBe(false);
+  });
+});
+
+describe('Widget ref callbacks and swap target', () => {
+  it('renders without crashing', () => {
+    const { container } = renderWidget();
+    expect(container.firstChild).toBeTruthy();
+  });
+
+  it('calls onMount with id and element on mount', () => {
+    const onMount = vi.fn();
+    renderWidget({ onMount });
+    expect(onMount).toHaveBeenCalledWith('x1', expect.any(HTMLElement));
+  });
+
+  it('calls onUnmount with id on unmount', () => {
+    const onUnmount = vi.fn();
+    const { unmount } = renderWidget({ onUnmount });
+    unmount();
+    expect(onUnmount).toHaveBeenCalledWith('x1');
+  });
+
+  it('applies data-swap-target attribute when isSwapTarget is true', () => {
+    const { container } = renderWidget({ isSwapTarget: true });
+    const tile = container.querySelector('[data-swap-target="true"]');
+    expect(tile).toBeTruthy();
+  });
+
+  it('does not apply data-swap-target when isSwapTarget is false (default)', () => {
+    const { container } = renderWidget();
+    const tile = container.querySelector('[data-swap-target="true"]');
+    expect(tile).toBeNull();
   });
 });
