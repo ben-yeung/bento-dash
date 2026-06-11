@@ -2,6 +2,7 @@
 import { type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
+import { X } from 'lucide-react';
 import styles from './Widget.module.css';
 import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
 import { useBoard } from '@/lib/state/boardStore';
@@ -65,7 +66,7 @@ export function Widget({
       {snapTarget && (
         <span className={styles.snapBadge}>{snapTarget}</span>
       )}
-      {/* TODO(manage-mode-x-exit-anim): the Ã— mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
+      {/* TODO(manage-mode-x-exit-anim): the X mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
       {manageMode && (
         <motion.button
           type="button"
@@ -76,7 +77,7 @@ export function Widget({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => removeWidget(widget.id)}
         >
-          Ã—
+          <X size={12} strokeWidth={2.5} />
         </motion.button>
       )}
       {children}
