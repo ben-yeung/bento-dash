@@ -123,6 +123,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
+        {/* TODO(avatar-editor-blur): spec says collapse on click-outside via onBlur; omitted because blur fires when tabbing between URL input and Apply button, collapsing the row mid-interaction. Revisit with a focus-trap or click-outside hook. */}
         {avatarEditorOpen && (
           <div className={styles.avatarEditor}>
             <input
