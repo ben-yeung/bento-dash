@@ -35,6 +35,7 @@ export function Fab() {
             key="fab-btn"
             layoutId="fab-morph"
             className={styles.fabBtn}
+            animate={{ borderRadius: '26px' }}
             aria-label="Open widget carousel"
             onClick={() => setFabOpen(true)}
             transition={SPRING_CLOSE}
@@ -45,8 +46,10 @@ export function Fab() {
           <motion.div
             key="fab-carousel"
             layoutId="fab-morph"
+            className={styles.carouselWrapper}
+            animate={{ borderRadius: '22px' }}
             transition={SPRING_OPEN}
-            style={{ borderRadius: '26px', transformOrigin: 'bottom right' }}
+            style={{ transformOrigin: 'bottom right' }}
           >
             <WidgetCarousel onClose={() => setFabOpen(false)} />
           </motion.div>

@@ -1,16 +1,10 @@
 .panel {
   position: relative;
-  background: var(--surface-glass);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border: 1px solid var(--border-hairline);
-  border-radius: 22px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: min(580px, calc(100vw - 120px));
-  transform-origin: bottom right;
 }
 
 .header {
