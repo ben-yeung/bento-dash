@@ -29,7 +29,7 @@ describe('SettingsModal', () => {
   it('opens name input on clicking edit display name button', async () => {
     render(<SettingsModal onClose={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /edit display name/i }));
-    expect(screen.getByRole('textbox', { name: /display name/i })).not.toBeNull();
+    expect(screen.getByRole('textbox', { name: /display name/i })).toBeInTheDocument();
   });
 
   it('saves name on Enter', async () => {
@@ -55,7 +55,7 @@ describe('SettingsModal', () => {
   it('opens avatar editor on clicking change avatar button', async () => {
     render(<SettingsModal onClose={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /change avatar/i }));
-    expect(screen.getByRole('textbox', { name: /avatar url/i })).not.toBeNull();
+    expect(screen.getByRole('textbox', { name: /avatar url/i })).toBeInTheDocument();
   });
 
   it('saves avatarUrl from URL input on Apply', async () => {
@@ -70,9 +70,9 @@ describe('SettingsModal', () => {
   it('opening avatar editor closes name edit input', async () => {
     render(<SettingsModal onClose={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /edit display name/i }));
-    expect(screen.getByRole('textbox', { name: /display name/i })).not.toBeNull();
+    expect(screen.getByRole('textbox', { name: /display name/i })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /change avatar/i }));
     expect(screen.queryByRole('textbox', { name: /display name/i })).toBeNull();
-    expect(screen.getByRole('textbox', { name: /avatar url/i })).not.toBeNull();
+    expect(screen.getByRole('textbox', { name: /avatar url/i })).toBeInTheDocument();
   });
 });

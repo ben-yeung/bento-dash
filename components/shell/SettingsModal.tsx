@@ -13,6 +13,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Escape sets this flag so the subsequent onBlur doesn't save before the input unmounts.
   const cancelledRef = useRef(false);
 
   function openNameEdit() {
