@@ -22,7 +22,7 @@ function DonutRing({ size }: { size: number }) {
   const circ = 2 * Math.PI * r;
   const dash = (PCT / 100) * circ;
   return (
-    <svg width={size} height={size} style={{ display: 'block' }}>
+    <svg width={`${size/10}em`} height={`${size/10}em`} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={6} />
       <circle cx={size/2} cy={size/2} r={r} fill="none"
         stroke={ACCENT} strokeWidth={6}
@@ -39,24 +39,24 @@ function DonutRing({ size }: { size: number }) {
 
 function Header() {
   return (
-    <div style={{ marginBottom: 4 }}>
-      <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Calories</div>
+    <div style={{ marginBottom: '0.4em' }}>
+      <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
+      <div style={{ fontSize: '1.3em', fontWeight: 600, color: 'var(--text)' }}>Calories</div>
     </div>
   );
 }
 
 function ProgressBar() {
   return (
-    <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', margin: '6px 0' }}>
-      <div style={{ height: '100%', width: `${PCT}%`, background: '#6bcb77', borderRadius: 3 }} />
+    <div style={{ height: '0.6em', borderRadius: '0.3em', background: 'rgba(255,255,255,0.08)', overflow: 'hidden', margin: '0.6em 0' }}>
+      <div style={{ height: '100%', width: `${PCT}%`, background: '#6bcb77', borderRadius: '0.3em' }} />
     </div>
   );
 }
 
 export function CalorieTracker({ w, h }: WidgetContentProps) {
   const s: React.CSSProperties = {
-    position: 'absolute', inset: 0, padding: 12,
+    position: 'absolute', inset: 0, padding: '1.2em',
     display: 'flex', flexDirection: 'column',
     color: 'var(--text)', overflow: 'hidden',
   };
@@ -72,9 +72,9 @@ export function CalorieTracker({ w, h }: WidgetContentProps) {
   if (w === 2 && h === 1) {
     return (
       <div style={s}>
-        <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>Calories</div>
-        <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>{CONSUMED.toLocaleString()}</div>
-        <div style={{ fontSize: 11, color: 'var(--muted)' }}>/ {GOAL.toLocaleString()}</div>
+        <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2em' }}>Calories</div>
+        <div style={{ fontSize: '2.6em', fontWeight: 700, lineHeight: 1 }}>{CONSUMED.toLocaleString()}</div>
+        <div style={{ fontSize: '1.1em', color: 'var(--muted)' }}>/ {GOAL.toLocaleString()}</div>
         <ProgressBar />
       </div>
     );
@@ -85,17 +85,17 @@ export function CalorieTracker({ w, h }: WidgetContentProps) {
       <div style={s}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Header />
-          <div style={{ textAlign: 'right', fontSize: 11 }}>
+          <div style={{ textAlign: 'right', fontSize: '1.1em' }}>
             <span>{CONSUMED.toLocaleString()}</span>
             <span style={{ color: 'var(--muted)' }}> / {GOAL.toLocaleString()} kcal</span>
           </div>
         </div>
         <ProgressBar />
-        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+        <div style={{ display: 'flex', gap: '0.8em', marginTop: '0.6em' }}>
           {MACROS.map((m) => (
             <div key={m.label} style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: m.color }}>{m.g}g</div>
-              <div style={{ fontSize: 10, color: 'var(--muted)' }}>{m.label}</div>
+              <div style={{ fontSize: '1.3em', fontWeight: 600, color: m.color }}>{m.g}g</div>
+              <div style={{ fontSize: '1em', color: 'var(--muted)' }}>{m.label}</div>
             </div>
           ))}
         </div>
@@ -105,33 +105,33 @@ export function CalorieTracker({ w, h }: WidgetContentProps) {
 
   // 3×2
   return (
-    <div style={{ ...s, flexDirection: 'row', gap: 10 }}>
+    <div style={{ ...s, flexDirection: 'row', gap: '1em' }}>
       <div style={{ flex: 1 }}>
         <Header />
-        <div style={{ fontSize: 11, marginBottom: 4 }}>
+        <div style={{ fontSize: '1.1em', marginBottom: '0.4em' }}>
           <span>{CONSUMED.toLocaleString()}</span>
           <span style={{ color: 'var(--muted)' }}> / {GOAL.toLocaleString()} kcal</span>
         </div>
         <ProgressBar />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6em', marginTop: '0.6em' }}>
           {MACROS.map((m) => (
             <div key={m.label}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 2 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1em', marginBottom: '0.2em' }}>
                 <span style={{ color: 'var(--muted)' }}>{m.label}</span>
                 <span>{m.g}g</span>
               </div>
-              <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.08)' }}>
-                <div style={{ height: '100%', width: `${Math.min(100, m.g / 2)}%`, background: m.color, borderRadius: 2 }} />
+              <div style={{ height: '0.4em', borderRadius: '0.2em', background: 'rgba(255,255,255,0.08)' }}>
+                <div style={{ height: '100%', width: `${Math.min(100, m.g / 2)}%`, background: m.color, borderRadius: '0.2em' }} />
               </div>
             </div>
           ))}
         </div>
       </div>
-      <div style={{ width: 1, background: 'var(--border-hairline)' }} />
+      <div style={{ width: '1px', background: 'var(--border-hairline)' }} />
       <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6em' }}>
           {MEALS.map((meal) => (
-            <div key={meal.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+            <div key={meal.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1em' }}>
               <span style={{ color: 'var(--muted)' }}>{meal.name}</span>
               <span>{meal.cal} kcal</span>
             </div>

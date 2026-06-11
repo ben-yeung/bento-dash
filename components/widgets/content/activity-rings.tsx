@@ -15,7 +15,7 @@ function ConcRings({ size }: { size: number }) {
   const gap = 5;
   const strokeWidth = Math.max(4, size / 16);
   return (
-    <svg width={size} height={size} style={{ display: 'block', flexShrink: 0 }}>
+    <svg width={`${size/10}em`} height={`${size/10}em`} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block', flexShrink: 0 }}>
       {RINGS.map((ring, i) => {
         const r = size / 2 - strokeWidth / 2 - i * (strokeWidth + gap);
         const circ = 2 * Math.PI * r;
@@ -38,16 +38,16 @@ function ConcRings({ size }: { size: number }) {
 
 function Header() {
   return (
-    <div style={{ marginBottom: 4 }}>
-      <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Activity</div>
+    <div style={{ marginBottom: '0.4em' }}>
+      <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
+      <div style={{ fontSize: '1.3em', fontWeight: 600, color: 'var(--text)' }}>Activity</div>
     </div>
   );
 }
 
 export function ActivityRings({ w, h }: WidgetContentProps) {
   const s: React.CSSProperties = {
-    position: 'absolute', inset: 0, padding: 12,
+    position: 'absolute', inset: 0, padding: '1.2em',
     display: 'flex', flexDirection: 'column',
     color: 'var(--text)', overflow: 'hidden',
   };
@@ -63,15 +63,15 @@ export function ActivityRings({ w, h }: WidgetContentProps) {
   if (w === 2 && h === 1) {
     return (
       <div style={s}>
-        <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Activity</div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4em' }}>Activity</div>
+        <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
           <ConcRings size={52} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3em' }}>
             {RINGS.map((ring) => (
-              <div key={ring.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, whiteSpace: 'nowrap' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: ring.color, flexShrink: 0 }} />
+              <div key={ring.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1.1em', whiteSpace: 'nowrap' }}>
+                <div style={{ width: '0.8em', height: '0.8em', borderRadius: '50%', background: ring.color, flexShrink: 0 }} />
                 <span style={{ color: 'var(--muted)' }}>{ring.label}</span>
-                <span style={{ marginLeft: 'auto', paddingLeft: 8 }}>{ring.value} <span style={{ color: 'var(--muted)', fontSize: 9 }}>{ring.unit}</span></span>
+                <span style={{ marginLeft: 'auto', paddingLeft: '0.8em' }}>{ring.value} <span style={{ color: 'var(--muted)', fontSize: '0.9em' }}>{ring.unit}</span></span>
               </div>
             ))}
           </div>
@@ -92,7 +92,7 @@ export function ActivityRings({ w, h }: WidgetContentProps) {
     return (
       <div style={s}>
         <Header />
-        <svg width="100%" height={55} viewBox="0 0 140 55" preserveAspectRatio="none" style={{ marginBottom: 6 }}>
+        <svg width="100%" height={'5.5em'} viewBox="0 0 140 55" preserveAspectRatio="none" style={{ marginBottom: '0.6em' }}>
           {RINGS.map((ring, ri) => (
             <polyline key={ring.label}
               points={points.map((pt) => pt[ri]).join(' ')}
@@ -100,12 +100,12 @@ export function ActivityRings({ w, h }: WidgetContentProps) {
             />
           ))}
         </svg>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4em' }}>
           {RINGS.map((ring) => (
-            <div key={ring.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: ring.color }} />
+            <div key={ring.label} style={{ display: 'flex', alignItems: 'center', gap: '0.6em', fontSize: '1.1em' }}>
+              <div style={{ width: '0.8em', height: '0.8em', borderRadius: '50%', background: ring.color }} />
               <span style={{ flex: 1, color: 'var(--muted)' }}>{ring.label}</span>
-              <span>{ring.value} <span style={{ color: 'var(--muted)', fontSize: 9 }}>{ring.unit}</span></span>
+              <span>{ring.value} <span style={{ color: 'var(--muted)', fontSize: '0.9em' }}>{ring.unit}</span></span>
             </div>
           ))}
         </div>
@@ -120,34 +120,34 @@ export function ActivityRings({ w, h }: WidgetContentProps) {
   );
 
   return (
-    <div style={{ ...s, flexDirection: 'row', gap: 10 }}>
+    <div style={{ ...s, flexDirection: 'row', gap: '1em' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <ConcRings size={88} />
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.6em', justifyContent: 'center' }}>
         {RINGS.map((ring) => (
           <div key={ring.label}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1em', marginBottom: '0.2em' }}>
               <span style={{ color: ring.color }}>{ring.label}</span>
-              <span>{ring.value} <span style={{ color: 'var(--muted)', fontSize: 9 }}>{ring.unit}</span></span>
+              <span>{ring.value} <span style={{ color: 'var(--muted)', fontSize: '0.9em' }}>{ring.unit}</span></span>
             </div>
-            <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${ring.pct}%`, background: ring.color, borderRadius: 2 }} />
+            <div style={{ height: '0.4em', borderRadius: '0.2em', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${ring.pct}%`, background: ring.color, borderRadius: '0.2em' }} />
             </div>
           </div>
         ))}
       </div>
-      <div style={{ width: 52 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+      <div style={{ width: '5.2em' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4em' }}>
           {WEEK_DAYS.map((d, i) => (
-            <div key={i} style={{ fontSize: 8, color: 'var(--muted)', width: 6, textAlign: 'center' }}>{d}</div>
+            <div key={i} style={{ fontSize: '0.8em', color: 'var(--muted)', width: '0.6em', textAlign: 'center' }}>{d}</div>
           ))}
         </div>
         {RINGS.map((ring, ri) => (
-          <div key={ring.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+          <div key={ring.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3em' }}>
             {WEEK_DAYS.map((_, di) => (
               <div key={di} style={{
-                width: 6, height: 10, borderRadius: 1,
+                width: '0.6em', height: '1em', borderRadius: '0.1em',
                 background: weekData[ri][di] > 70 ? ring.color : 'rgba(255,255,255,0.08)',
               }} />
             ))}
