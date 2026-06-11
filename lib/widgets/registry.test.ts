@@ -34,4 +34,13 @@ describe('WIDGET_REGISTRY', () => {
     expect(names).toContain('2×2');
     expect(names).toContain('4×2');
   });
+
+  it('each entry has an icon component defined', () => {
+    for (const def of WIDGET_REGISTRY) {
+      expect(def.icon).toBeDefined();
+      // lucide-react exports icons as forwardRef objects (typeof === 'object') with a render fn
+      expect(typeof def.icon).not.toBe('undefined');
+      expect(def.icon).not.toBeNull();
+    }
+  });
 });
