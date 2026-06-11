@@ -10,8 +10,8 @@ interface ProfileState {
 }
 
 export const PROFILE_DEFAULTS = {
-  displayName: 'Ben',
-  avatarUrl: 'https://www.gravatar.com/avatar/2314de272e570cb9a241c538a104472d?s=80&d=mp',
+  displayName: 'Jane Doe',
+  avatarUrl: 'https://www.gravatar.com/avatar/0cba00ca3da1b283a57287bcceb17e35?s=80&d=identicon&f=y',
 };
 
 export const useProfile = create<ProfileState>()(
