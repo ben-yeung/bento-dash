@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -50,19 +50,40 @@ export function AppShell() {
   // Track palette drag separately (widget drag uses dragState)
   const [paletteActiveId, setPaletteActiveId] = useState<string | null>(null);
 
-  const widgetRefs = useRef<Map<string, HTMLElement>>(new Map());
-  const registerRef = useCallback((id: string, el: HTMLElement) => {
-    widgetRefs.current.set(id, el);
-  }, []);
-  const unregisterRef = useCallback((id: string) => {
-    widgetRefs.current.delete(id);
-  }, []);
+  // Hit-test against committed grid positions (stable, not animated) to avoid flicker
+  // during spring transitions. currentTargetId uses a full-rect zone (no inset) so the
+  // active swap target stays sticky even when the cursor grazes its edge.
+  function findWidgetUnderCursor(
+    x: number,
+    y: number,
+    excludeId: string,
+    currentTargetId: string | null,
+    boardRect: DOMRect,
+  ): string | null {
+    const stride = metrics.cellSize + metrics.gap;
+    const inset = metrics.gap; // new targets require cursor to be gap-px inside boundary
 
-  function findWidgetUnderCursor(x: number, y: number, excludeId: string): string | null {
-    for (const [id, el] of widgetRefs.current) {
-      if (id === excludeId) continue;
-      const r = el.getBoundingClientRect();
-      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return id;
+    const widgetRect = (w: { x: number; y: number; w: number; h: number }, i: number) => ({
+      left:   boardRect.left + w.x * stride + i,
+      top:    boardRect.top  + w.y * stride + i,
+      right:  boardRect.left + w.x * stride + w.w * metrics.cellSize + (w.w - 1) * metrics.gap - i,
+      bottom: boardRect.top  + w.y * stride + w.h * metrics.cellSize + (w.h - 1) * metrics.gap - i,
+    });
+
+    // Hysteresis: keep the current swap target if cursor is still inside its full rect
+    if (currentTargetId) {
+      const cur = committed.find((w) => w.id === currentTargetId);
+      if (cur) {
+        const r = widgetRect(cur, 0);
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return currentTargetId;
+      }
+    }
+
+    // Enter a new target only when cursor is inset-px inside its boundary
+    for (const w of committed) {
+      if (w.id === excludeId) continue;
+      const r = widgetRect(w, inset);
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return w.id;
     }
     return null;
   }
@@ -112,7 +133,13 @@ export function AppShell() {
     const clientX = activator.clientX + e.delta.x;
     const clientY = activator.clientY + e.delta.y;
 
-    const hitId = findWidgetUnderCursor(clientX, clientY, activeId);
+    const board = boardRef.current;
+    if (!board) return;
+    const boardRect = board.getBoundingClientRect();
+
+    const currentTargetId =
+      dragState.targetKind === 'swap' ? dragState.targetId : null;
+    const hitId = findWidgetUnderCursor(clientX, clientY, activeId, currentTargetId, boardRect);
     if (hitId) {
       const hit = committed.find((w) => w.id === hitId);
       const active = committed.find((w) => w.id === activeId);
@@ -126,11 +153,9 @@ export function AppShell() {
         setDragState({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
-      const board = boardRef.current;
       const rect = e.active.rect.current.translated;
-      if (!board || !rect) return;
-      const b = board.getBoundingClientRect();
-      const cell = pointToCell(rect.left - b.left, rect.top - b.top, metrics);
+      if (!rect) return;
+      const cell = pointToCell(rect.left - boardRect.left, rect.top - boardRect.top, metrics);
       const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
       setDragState({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
@@ -184,8 +209,6 @@ export function AppShell() {
               boardRef={boardRef}
               metrics={metrics}
               dragState={dragState}
-              onWidgetMount={registerRef}
-              onWidgetUnmount={unregisterRef}
             />
           </div>
           <Fab />

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { type ComponentProps } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -51,23 +51,10 @@ describe('Widget delete control', () => {
   });
 });
 
-describe('Widget ref callbacks and swap target', () => {
+describe('Widget swap target', () => {
   it('renders without crashing', () => {
     const { container } = renderWidget();
     expect(container.firstChild).toBeTruthy();
-  });
-
-  it('calls onMount with id and element on mount', () => {
-    const onMount = vi.fn();
-    renderWidget({ onMount });
-    expect(onMount).toHaveBeenCalledWith('x1', expect.any(HTMLElement));
-  });
-
-  it('calls onUnmount with id on unmount', () => {
-    const onUnmount = vi.fn();
-    const { unmount } = renderWidget({ onUnmount });
-    unmount();
-    expect(onUnmount).toHaveBeenCalledWith('x1');
   });
 
   it('applies data-swap-target attribute when isSwapTarget is true', () => {

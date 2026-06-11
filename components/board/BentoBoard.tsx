@@ -19,8 +19,6 @@ interface BentoBoardProps {
   boardRef: RefObject<HTMLDivElement>;
   metrics: GridMetrics;
   dragState: DragState;
-  onWidgetMount: (id: string, el: HTMLElement) => void;
-  onWidgetUnmount: (id: string) => void;
 }
 
 interface WidgetWithResizeProps {
@@ -36,8 +34,6 @@ interface WidgetWithResizeProps {
   setResizePreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
-  onMount: (id: string, el: HTMLElement) => void;
-  onUnmount: (id: string) => void;
 }
 
 // Defined at module scope (NOT inside BentoBoard) so its type identity is stable
@@ -58,8 +54,6 @@ function WidgetWithResize({
   setResizePreview,
   setResizingId,
   resizeWidget,
-  onMount,
-  onUnmount,
 }: WidgetWithResizeProps) {
   const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
     startW: w.w,
@@ -80,8 +74,6 @@ function WidgetWithResize({
       interactive={resizingId === null && !interactionsLocked}
       isSwapTarget={isSwapTarget}
       manageMode={manageMode}
-      onMount={onMount}
-      onUnmount={onUnmount}
     >
       {!interactionsLocked && (
         <ResizeHandle
@@ -102,8 +94,6 @@ export function BentoBoard({
   boardRef,
   metrics,
   dragState,
-  onWidgetMount,
-  onWidgetUnmount,
 }: BentoBoardProps) {
   const committed = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
@@ -174,8 +164,6 @@ export function BentoBoard({
                 setResizePreview={setResizePreview}
                 setResizingId={setResizingId}
                 resizeWidget={resizeWidget}
-                onMount={onWidgetMount}
-                onUnmount={onWidgetUnmount}
               />
             ))}
         </AnimatePresence>

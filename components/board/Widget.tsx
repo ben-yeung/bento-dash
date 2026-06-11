@@ -1,5 +1,5 @@
 'use client';
-import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 import styles from './Widget.module.css';
@@ -14,8 +14,6 @@ interface WidgetProps {
   interactive?: boolean;
   isSwapTarget?: boolean;
   manageMode?: boolean;
-  onMount?: (id: string, el: HTMLElement) => void;
-  onUnmount?: (id: string) => void;
   children?: ReactNode;
 }
 
@@ -26,8 +24,6 @@ export function Widget({
   interactive = true,
   isSwapTarget = false,
   manageMode = false,
-  onMount,
-  onUnmount,
   children,
 }: WidgetProps) {
   const removeWidget = useBoard((s) => s.removeWidget);
@@ -35,24 +31,6 @@ export function Widget({
     id: widget.id,
     disabled: !interactive,
   });
-
-  // Maintain a local ref alongside dnd-kit's setNodeRef so we can register
-  // the DOM element for bounding-box hit detection in BentoBoard.
-  const localRef = useRef<HTMLDivElement | null>(null);
-  const combinedRef = useCallback(
-    (el: HTMLDivElement | null) => {
-      setNodeRef(el);
-      localRef.current = el;
-    },
-    [setNodeRef],
-  );
-
-  useEffect(() => {
-    if (localRef.current) onMount?.(widget.id, localRef.current);
-    return () => { onUnmount?.(widget.id); };
-  // onMount/onUnmount are stable useCallback refs from BentoBoard — safe to omit from deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [widget.id]);
 
   const style: CSSProperties = {
     gridColumn: `${widget.x + 1} / span ${widget.w}`,
@@ -71,7 +49,7 @@ export function Widget({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      ref={combinedRef}
+      ref={setNodeRef}
       {...(interactive ? listeners : {})}
       {...attributes}
     >
