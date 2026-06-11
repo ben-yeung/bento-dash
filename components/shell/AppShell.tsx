@@ -30,7 +30,7 @@ function parsePaletteId(id: string): { cat: Category; w: number; h: number } | n
   if (!id.startsWith('palette:')) return null;
   const [, cat, size] = id.split(':');
   const [w, h] = (size ?? '').split('x').map(Number);
-  if (!cat || isNaN(w) || isNaN(h) || w < 1 || h < 1) return null;
+  if (!cat || Number.isNaN(w) || Number.isNaN(h) || w < 1 || h < 1) return null;
   return { cat: cat as Category, w, h };
 }
 
@@ -107,14 +107,16 @@ export function AppShell() {
     if (dragState.phase !== 'dragging') return;
     const { activeId } = dragState;
 
-    const activator = e.activatorEvent as PointerEvent;
+    if (!(e.activatorEvent instanceof PointerEvent)) return;
+    const activator = e.activatorEvent;
     const clientX = activator.clientX + e.delta.x;
     const clientY = activator.clientY + e.delta.y;
 
     const hitId = findWidgetUnderCursor(clientX, clientY, activeId);
     if (hitId) {
-      const hit = committed.find((w) => w.id === hitId)!;
-      const active = committed.find((w) => w.id === activeId)!;
+      const hit = committed.find((w) => w.id === hitId);
+      const active = committed.find((w) => w.id === activeId);
+      if (!hit || !active) return;
       const isSameSize = hit.w === active.w && hit.h === active.h;
       if (isSameSize) {
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
