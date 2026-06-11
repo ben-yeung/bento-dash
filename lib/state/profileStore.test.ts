@@ -18,11 +18,11 @@ describe('profileStore', () => {
     expect(useProfile.getState().avatarUrl).toBe('https://example.com/avatar.png');
   });
 
-  it('resetProfile restores both fields to empty string', () => {
+  it('resetProfile restores both fields to defaults', () => {
     useProfile.getState().setDisplayName('Alice');
     useProfile.getState().setAvatarUrl('https://example.com/avatar.png');
     useProfile.getState().resetProfile();
-    expect(useProfile.getState().displayName).toBe('');
-    expect(useProfile.getState().avatarUrl).toBe('');
+    expect(useProfile.getState().displayName).toBe(PROFILE_DEFAULTS.displayName);
+    expect(useProfile.getState().avatarUrl).toBe(PROFILE_DEFAULTS.avatarUrl);
   });
 });

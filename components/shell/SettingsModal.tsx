@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
+import { Palette } from 'lucide-react';
 import styles from './SettingsModal.module.css';
 import { useSettings, ACCENT_PRESETS } from '@/lib/state/settingsStore';
 import { useProfile } from '@/lib/state/profileStore';
@@ -15,6 +16,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const colorInputRef = useRef<HTMLInputElement>(null);
+  const isCustom = !ACCENT_PRESETS.includes(s.accent);
   // Escape sets this flag so the subsequent onBlur doesn't save before the input unmounts.
   const cancelledRef = useRef(false);
 
@@ -196,13 +199,25 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 aria-label={`accent ${c}`}
               />
             ))}
-            <input
-              type="color"
-              className={styles.colorPicker}
-              value={s.accent}
-              onChange={(e) => s.setAccent(e.target.value)}
-              aria-label="custom accent color"
-            />
+            <div
+              className={styles.colorPickerWrap}
+              onClick={() => colorInputRef.current?.click()}
+              title="Custom color"
+            >
+              {isCustom ? (
+                <span className={styles.customSwatch} style={{ background: s.accent }} />
+              ) : (
+                <span className={styles.colorPickerIcon}><Palette size={14} /></span>
+              )}
+              <input
+                ref={colorInputRef}
+                type="color"
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
+                value={s.accent}
+                onChange={(e) => s.setAccent(e.target.value)}
+                aria-label="custom accent color"
+              />
+            </div>
           </div>
         </div>
 

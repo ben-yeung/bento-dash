@@ -9,7 +9,10 @@ interface ProfileState {
   resetProfile: () => void;
 }
 
-export const PROFILE_DEFAULTS = { displayName: '', avatarUrl: '' };
+export const PROFILE_DEFAULTS = {
+  displayName: 'Ben',
+  avatarUrl: 'https://www.gravatar.com/avatar/2314de272e570cb9a241c538a104472d?s=80&d=mp',
+};
 
 export const useProfile = create<ProfileState>()(
   persist(

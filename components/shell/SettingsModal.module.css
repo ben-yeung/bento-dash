@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 40;
+  z-index: 120;
 }
 .modal {
   width: 420px;
@@ -196,15 +196,32 @@
   margin: 4px 0 18px;
 }
 
-.colorPicker {
+.colorPickerWrap {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.colorPickerIcon {
   width: 26px;
   height: 26px;
   border-radius: 8px;
   border: 2px solid var(--border-hairline);
-  padding: 0;
-  cursor: pointer;
-  background: none;
-  overflow: hidden;
+  background: transparent;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.customSwatch {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--text);
+  pointer-events: none;
 }
 
 .footer {

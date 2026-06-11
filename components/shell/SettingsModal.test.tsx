@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal } from './SettingsModal';
 import { useSettings } from '@/lib/state/settingsStore';
-import { useProfile } from '@/lib/state/profileStore';
+import { useProfile, PROFILE_DEFAULTS } from '@/lib/state/profileStore';
 import { useBoard } from '@/lib/state/boardStore';
 import { seedWidgets } from '@/lib/data/seed';
 
@@ -102,7 +102,7 @@ describe('SettingsModal', () => {
     await userEvent.click(btn);
     await userEvent.click(screen.getByRole('button', { name: /confirm reset/i }));
     expect(useSettings.getState().theme).toBe('dark');
-    expect(useProfile.getState().displayName).toBe('');
+    expect(useProfile.getState().displayName).toBe(PROFILE_DEFAULTS.displayName);
     expect(useBoard.getState().widgets.length).toBe(seedWidgets().length);
     expect(onClose).toHaveBeenCalled();
   });
