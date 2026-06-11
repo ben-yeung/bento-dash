@@ -5,15 +5,15 @@
   align-items: center;
   justify-content: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 1.2em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 0.8em;
+  height: 0.8em;
   border-radius: 50%;
   background: var(--accent);
   opacity: 0.5;
-  margin-right: 8px;
+  margin-right: 0.8em;
 }

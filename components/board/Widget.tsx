@@ -65,7 +65,9 @@ export function Widget({
       {...(interactive ? listeners : {})}
       {...attributes}
     >
-      <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
+      <div style={{ position: 'absolute', inset: 0, fontSize: 'calc(var(--cell-size, 100px) / 10)' }}>
+        <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
+      </div>
       {snapTarget && (
         <span className={styles.snapBadge}>{snapTarget}</span>
       )}

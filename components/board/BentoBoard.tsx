@@ -164,7 +164,10 @@ export function BentoBoard({
     <div
       ref={boardRef}
       className={styles.board}
-      style={{ gridAutoRows: `${metrics.cellSize}px` }}
+      style={{
+        gridAutoRows: `${metrics.cellSize}px`,
+        '--cell-size': `${metrics.cellSize}px`,
+      } as React.CSSProperties}
     >
       <LayoutGroup>
         <AnimatePresence>
