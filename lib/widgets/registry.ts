@@ -28,7 +28,6 @@ export interface WidgetDefinition {
   accentColor: string;
   icon: LucideIcon;
   supportedSizes: SizePreset[];
-  // TODO(widget-content): ContentComponent is WidgetSkeleton until each type's component is built in Tasks 7-16.
   ContentComponent: React.ComponentType<WidgetContentProps>;
 }
 
