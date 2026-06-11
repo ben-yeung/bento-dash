@@ -14,7 +14,7 @@ const NOW_LABEL = '2:35';
 
 export function TodaysSchedule({ w, h }: WidgetContentProps) {
   const s: React.CSSProperties = {
-    position: 'absolute', inset: 0, padding: 12,
+    position: 'absolute', inset: 0, padding: '1.2em',
     display: 'flex', flexDirection: 'column',
     color: 'var(--text)', overflow: 'hidden',
   };
@@ -23,11 +23,11 @@ export function TodaysSchedule({ w, h }: WidgetContentProps) {
 
   function EventRow({ ev }: { ev: typeof TIMELINE[0] }) {
     return (
-      <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', minHeight: 36 }}>
-        <div style={{ width: 36, textAlign: 'right', fontSize: 10, color: 'var(--muted)', paddingTop: 2, flexShrink: 0 }}>{ev.time}</div>
-        <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
-          <div style={{ width: 3, borderRadius: 2, background: ev.color }} />
-          <div style={{ fontSize: 12, paddingTop: 2 }}>{ev.title}</div>
+      <div style={{ display: 'flex', gap: '0.8em', alignItems: 'stretch', minHeight: '3.6em' }}>
+        <div style={{ width: '3.6em', textAlign: 'right', fontSize: '1em', color: 'var(--muted)', paddingTop: '0.2em', flexShrink: 0 }}>{ev.time}</div>
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: '0.6em' }}>
+          <div style={{ width: '0.3em', borderRadius: '0.2em', background: ev.color }} />
+          <div style={{ fontSize: '1.2em', paddingTop: '0.2em' }}>{ev.title}</div>
         </div>
       </div>
     );
@@ -36,8 +36,8 @@ export function TodaysSchedule({ w, h }: WidgetContentProps) {
   if (w === 1) {
     return (
       <div style={s}>
-        <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Today</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden' }}>
+        <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.6em' }}>Today</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4em', overflow: 'hidden' }}>
           {visible.map((ev) => <EventRow key={ev.title} ev={ev} />)}
         </div>
       </div>
@@ -47,15 +47,15 @@ export function TodaysSchedule({ w, h }: WidgetContentProps) {
   const showNow = h >= 2;
   return (
     <div style={s}>
-      <div style={{ marginBottom: 6 }}>
-        <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>Schedule</div>
+      <div style={{ marginBottom: '0.6em' }}>
+        <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
+        <div style={{ fontSize: '1.3em', fontWeight: 600 }}>Schedule</div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4em', overflow: 'hidden', position: 'relative' }}>
         {showNow && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 2 }}>
-            <div style={{ width: 36, textAlign: 'right', fontSize: 10, color: '#38bdf8', flexShrink: 0 }}>{NOW_LABEL}</div>
-            <div style={{ flex: 1, height: 1, background: '#38bdf8' }} />
+          <div style={{ display: 'flex', gap: '0.8em', alignItems: 'center', marginBottom: '0.2em' }}>
+            <div style={{ width: '3.6em', textAlign: 'right', fontSize: '1em', color: '#38bdf8', flexShrink: 0 }}>{NOW_LABEL}</div>
+            <div style={{ flex: 1, height: '0.1em', background: '#38bdf8' }} />
           </div>
         )}
         {visible.map((ev) => <EventRow key={ev.title} ev={ev} />)}
