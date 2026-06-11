@@ -10,12 +10,13 @@ import type { Category } from '@/lib/grid/types';
 interface SizeChipProps {
   preset: SizePreset;
   category: Category;
+  widgetType: string;
   onAdd: (w: number, h: number) => void;
 }
 
-function SizeChip({ preset, category, onAdd }: SizeChipProps) {
+function SizeChip({ preset, category, widgetType, onAdd }: SizeChipProps) {
   const { listeners, attributes, setNodeRef, isDragging } = useDraggable({
-    id: `palette:${category}:${preset.w}x${preset.h}`,
+    id: `palette:${category}:${widgetType}:${preset.w}x${preset.h}`,
   });
 
   const handleClick = () => {
@@ -74,6 +75,7 @@ export function CarouselCard({ definition, metrics: _metrics, isOpen, onToggle, 
                   key={preset.name}
                   preset={preset}
                   category={definition.category}
+                  widgetType={definition.type}
                   onAdd={onAdd}
                 />
               ))}

@@ -26,12 +26,15 @@ import { pointToCell } from '@/lib/grid/collision';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
 import type { Category, WidgetLayout, DragState } from '@/lib/grid/types';
 
-function parsePaletteId(id: string): { cat: Category; w: number; h: number } | null {
+function parsePaletteId(id: string): { cat: Category; widgetType: string; w: number; h: number } | null {
   if (!id.startsWith('palette:')) return null;
-  const [, cat, size] = id.split(':');
+  const parts = id.split(':');
+  // parts: ['palette', cat, widgetType, 'WxH']
+  if (parts.length !== 4) return null;
+  const [, cat, widgetType, size] = parts;
   const [w, h] = (size ?? '').split('x').map(Number);
-  if (!cat || Number.isNaN(w) || Number.isNaN(h) || w < 1 || h < 1) return null;
-  return { cat: cat as Category, w, h };
+  if (!cat || !widgetType || Number.isNaN(w) || Number.isNaN(h) || w < 1 || h < 1) return null;
+  return { cat: cat as Category, widgetType, w, h };
 }
 
 export function AppShell() {
@@ -183,7 +186,7 @@ export function AppShell() {
       const parsed = parsePaletteId(id);
       if (parsed) {
         const pp = useDragStore.getState().palettePreview;
-        addWidget(parsed.cat, parsed.w, parsed.h, pp ? { x: pp.x, y: pp.y } : undefined);
+        addWidget(parsed.cat, parsed.widgetType, parsed.w, parsed.h, pp ? { x: pp.x, y: pp.y } : undefined);
         setFabOpen(false);
       }
       setPaletteActiveId(null);

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { LayoutGrid, type LucideIcon } from 'lucide-react';
+import { LayoutGrid, TrendingUp, Heart, CalendarDays, Sparkles, type LucideIcon } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import styles from './WidgetCarousel.module.css';
 import { CarouselCard } from './CarouselCard';
@@ -15,9 +15,12 @@ interface FilterEntry {
   Icon: LucideIcon;
 }
 
-const ALL_FILTERS: FilterEntry[] = [
-  { label: 'All', value: null, Icon: LayoutGrid },
-  ...WIDGET_REGISTRY.map((d) => ({ label: d.label, value: d.category, Icon: d.icon })),
+const CATEGORY_FILTERS: FilterEntry[] = [
+  { label: 'All',       value: null,        Icon: LayoutGrid  },
+  { label: 'Finance',   value: 'finance',   Icon: TrendingUp  },
+  { label: 'Health',    value: 'health',    Icon: Heart       },
+  { label: 'Calendar',  value: 'calendar',  Icon: CalendarDays },
+  { label: 'Lifestyle', value: 'lifestyle', Icon: Sparkles    },
 ];
 
 const STUB_METRICS: GridMetrics = { cellSize: 80, gap: 12, cols: 6 };
@@ -35,8 +38,8 @@ export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
     ? WIDGET_REGISTRY.filter((d) => d.category === activeFilter)
     : WIDGET_REGISTRY;
 
-  function handleAdd(category: Category, w: number, h: number) {
-    addWidget(category, w, h);
+  function handleAdd(category: Category, widgetType: string, w: number, h: number) {
+    addWidget(category, widgetType, w, h);
     onClose();
   }
 
@@ -50,7 +53,7 @@ export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
       </div>
 
       <div className={styles.filters}>
-        {ALL_FILTERS.map((f) => (
+        {CATEGORY_FILTERS.map((f) => (
           <button
             key={f.label}
             className={styles.filterChip}
@@ -72,7 +75,7 @@ export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
               metrics={STUB_METRICS}
               isOpen={selectedType === def.type}
               onToggle={() => setSelectedType(selectedType === def.type ? null : def.type)}
-              onAdd={(w, h) => handleAdd(def.category, w, h)}
+              onAdd={(w, h) => handleAdd(def.category, def.type, w, h)}
             />
           ))}
         </AnimatePresence>

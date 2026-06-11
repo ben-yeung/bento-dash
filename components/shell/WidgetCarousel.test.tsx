@@ -68,7 +68,7 @@ describe('WidgetCarousel', () => {
     if (sizeChipButton) {
       sizeChipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     }
-    expect(mockAddWidget).toHaveBeenCalledWith('finance', 1, 1);
+    expect(mockAddWidget).toHaveBeenCalledWith('finance', 'finance', 1, 1);
     expect(onClose).toHaveBeenCalled();
   });
 
