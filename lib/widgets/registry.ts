@@ -2,6 +2,7 @@ import { WidgetSkeleton, type WidgetContentProps } from '@/components/widgets/Wi
 import { BudgetSummary } from '@/components/widgets/content/budget-summary';
 import { ActivityRings } from '@/components/widgets/content/activity-rings';
 import { CalorieTracker } from '@/components/widgets/content/calorie-tracker';
+import { Steps } from '@/components/widgets/content/steps';
 import type { Category } from '@/lib/grid/types';
 import { SIZE_PRESETS, type SizePreset } from '@/lib/grid/sizes';
 import type React from 'react';
@@ -64,7 +65,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     accentColor: '#38bdf8',
     icon: Footprints,
     supportedSizes: [p('1×1'), p('2×1'), p('2×2'), p('3×2')],
-    ContentComponent: WidgetSkeleton,
+    ContentComponent: Steps,
   },
   // Calendar
   {
