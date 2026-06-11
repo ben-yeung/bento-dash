@@ -9,7 +9,8 @@ import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
 import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
-import { nearestPreset, type SizePreset } from '@/lib/grid/sizes';
+import { nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/sizes';
+import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { useUi } from '@/lib/state/uiStore';
 import { useDragResize } from '@/lib/hooks/useDragResize';
 import type { WidgetLayout, DragState } from '@/lib/grid/types';
@@ -32,6 +33,7 @@ interface WidgetWithResizeProps {
   resizingId: string | null;
   interactionsLocked: boolean;
   manageMode: boolean;
+  supportedSizes?: SizePreset[];
   setResizePreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
@@ -52,16 +54,18 @@ function WidgetWithResize({
   resizingId,
   interactionsLocked,
   manageMode,
+  supportedSizes,
   setResizePreview,
   setResizingId,
   resizeWidget,
 }: WidgetWithResizeProps) {
   const [snapTarget, setSnapTarget] = useState<SizePreset | null>(null);
 
-  const { onPointerDown, onPointerMove, onPointerUp } = useDragResize({
+  const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useDragResize({
     startW: w.w,
     startH: w.h,
     metrics,
+    supportedSizes,
     onPreview: (nw, nh) =>
       setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
     onIndicator: setSnapTarget,
@@ -90,11 +94,21 @@ function WidgetWithResize({
           onPointerDown={(e) => {
             setResizingId(w.id);
             setResizePreview(committed);
-            setSnapTarget(nearestPreset(w.w, w.h));
+            setSnapTarget(
+              supportedSizes?.length
+                ? nearestPresetFrom(w.w, w.h, supportedSizes)
+                : nearestPreset(w.w, w.h)
+            );
             onPointerDown(e);
           }}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={(e) => {
+            onPointerCancel(e);
+            setResizingId(null);
+            setResizePreview(null);
+            setSnapTarget(null);
+          }}
         />
       )}
     </Widget>
@@ -156,27 +170,31 @@ export function BentoBoard({
         <AnimatePresence>
           {widgets
             .filter((w) => !(dragState.phase === 'dragging' && w.id === dragState.activeId))
-            .map((w) => (
-              <WidgetWithResize
-                key={w.id}
-                w={w}
-                dimmed={filtering && filterMode === 'dim' && !matches(w.category)}
-                metrics={metrics}
-                committed={committed}
-                layoutMode={layoutMode}
-                isSwapTarget={
-                  dragState.phase === 'dragging' &&
-                  dragState.targetKind === 'swap' &&
-                  w.id === dragState.targetId
-                }
-                resizingId={resizingId}
-                interactionsLocked={interactionsLocked}
-                manageMode={manageMode}
-                setResizePreview={setResizePreview}
-                setResizingId={setResizingId}
-                resizeWidget={resizeWidget}
-              />
-            ))}
+            .map((w) => {
+              const def = WIDGET_REGISTRY.find((d) => d.type === w.widgetType);
+              return (
+                <WidgetWithResize
+                  key={w.id}
+                  w={w}
+                  dimmed={filtering && filterMode === 'dim' && !matches(w.category)}
+                  metrics={metrics}
+                  committed={committed}
+                  layoutMode={layoutMode}
+                  isSwapTarget={
+                    dragState.phase === 'dragging' &&
+                    dragState.targetKind === 'swap' &&
+                    w.id === dragState.targetId
+                  }
+                  resizingId={resizingId}
+                  interactionsLocked={interactionsLocked}
+                  manageMode={manageMode}
+                  supportedSizes={def?.supportedSizes}
+                  setResizePreview={setResizePreview}
+                  setResizingId={setResizingId}
+                  resizeWidget={resizeWidget}
+                />
+              );
+            })}
         </AnimatePresence>
         {activeWidget &&
           !interactionsLocked &&

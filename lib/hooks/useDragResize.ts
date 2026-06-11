@@ -1,21 +1,24 @@
 'use client';
 import { useCallback, useRef } from 'react';
 import type { GridMetrics } from '@/lib/grid/collision';
-import { clampSize, nearestPreset, type SizePreset } from '@/lib/grid/sizes';
+import { clampSize, nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/sizes';
 
 interface UseDragResizeArgs {
   startW: number;
   startH: number;
   metrics: GridMetrics;
+  supportedSizes?: SizePreset[];
   onPreview: (w: number, h: number) => void;
   onIndicator: (preset: SizePreset) => void;
   onCommit: (w: number, h: number) => void;
 }
 
-export function useDragResize({ startW, startH, metrics, onPreview, onIndicator, onCommit }: UseDragResizeArgs) {
+export function useDragResize({ startW, startH, metrics, supportedSizes, onPreview, onIndicator, onCommit }: UseDragResizeArgs) {
   const origin = useRef<{ px: number; py: number; w: number; h: number } | null>(null);
   const latestRaw  = useRef<{ w: number; h: number }>({ w: startW, h: startH });
-  const latestSnap = useRef<SizePreset>(nearestPreset(startW, startH));
+  const latestSnap = useRef<SizePreset>(
+    supportedSizes?.length ? nearestPresetFrom(startW, startH, supportedSizes) : nearestPreset(startW, startH)
+  );
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -38,7 +41,9 @@ export function useDragResize({ startW, startH, metrics, onPreview, onIndicator,
         latestRaw.current = raw;
         onPreview(raw.w, raw.h);
       }
-      const snap = nearestPreset(raw.w, raw.h);
+      const snap = supportedSizes?.length
+        ? nearestPresetFrom(raw.w, raw.h, supportedSizes)
+        : nearestPreset(raw.w, raw.h);
       if (snap.w !== latestSnap.current.w || snap.h !== latestSnap.current.h) {
         latestSnap.current = snap;
         onIndicator(snap);
@@ -57,5 +62,15 @@ export function useDragResize({ startW, startH, metrics, onPreview, onIndicator,
     [onCommit],
   );
 
-  return { onPointerDown, onPointerMove, onPointerUp };
+  // pointercancel fires when the browser forcibly ends the gesture (scroll takeover,
+  // touch with too many fingers, focus loss, etc.). Without this, origin.current stays
+  // set and resizingId stays non-null, locking all widget interactions indefinitely.
+  const onPointerCancel = useCallback(
+    (_e: React.PointerEvent) => {
+      origin.current = null;
+    },
+    [],
+  );
+
+  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel };
 }

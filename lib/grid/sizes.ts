@@ -40,3 +40,18 @@ export function nearestPreset(w: number, h: number): SizePreset {
   }
   return best;
 }
+
+export function nearestPresetFrom(w: number, h: number, from: SizePreset[]): SizePreset {
+  const pool = from.length > 0 ? from : SIZE_PRESETS;
+  const c = clampSize(w, h);
+  let best = pool[0];
+  let bestDist = Infinity;
+  for (const p of pool) {
+    const d = Math.abs(p.w - c.w) + Math.abs(p.h - c.h);
+    if (d < bestDist) {
+      bestDist = d;
+      best = p;
+    }
+  }
+  return best;
+}
