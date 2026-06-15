@@ -12,6 +12,10 @@ describe('shared primitives 2', () => {
     expect(getByText('9:00')).toBeTruthy();
     expect(getByText('Standup')).toBeTruthy();
   });
+  it('EventChip renders an optional subtitle in row variant', () => {
+    const { getByText } = render(<EventChip time="9:00" title="Standup" color="#3b82f6" duration="30m" subtitle="Zoom · 3 people" />);
+    expect(getByText('Zoom · 3 people')).toBeTruthy();
+  });
   it('StatStrip shows each value', () => {
     const { getByText } = render(<StatStrip items={[{ label: 'Dist', value: '5.2km' }]} />);
     expect(getByText('5.2km')).toBeTruthy();

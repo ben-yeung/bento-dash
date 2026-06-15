@@ -2,13 +2,13 @@ import type React from 'react';
 import { cell, SCALE } from '../scale';
 
 interface EventChipProps {
-  time: string; title: string; color: string; duration?: string;
+  time: string; title: string; color: string; duration?: string; subtitle?: string;
   variant?: 'row' | 'stack';   // stack = time top-left, title bottom-right (1×2 schedule)
 }
 
 function tint(hex: string) { return `${hex}1f`; } // ~12% alpha
 
-export function EventChip({ time, title, color, duration, variant = 'row' }: EventChipProps) {
+export function EventChip({ time, title, color, duration, subtitle, variant = 'row' }: EventChipProps) {
   const base: React.CSSProperties = {
     display: 'flex', borderRadius: cell(0.06), padding: `${cell(0.05)} ${cell(0.07)}`,
     background: tint(color), borderLeft: `${cell(0.025)} solid ${color}`, gap: cell(0.07),
@@ -27,7 +27,10 @@ export function EventChip({ time, title, color, duration, variant = 'row' }: Eve
   return (
     <div style={{ ...base, alignItems: 'center' }}>
       <div>{timeEl}{durEl && <div>{durEl}</div>}</div>
-      <span style={{ flex: 1, textAlign: 'right', fontSize: cell(SCALE.fontTitle), fontWeight: 400 }}>{title}</span>
+      <div style={{ flex: 1, textAlign: 'right', minWidth: 0 }}>
+        <div style={{ fontSize: cell(SCALE.fontTitle), fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+        {subtitle && <div style={{ fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>{subtitle}</div>}
+      </div>
     </div>
   );
 }

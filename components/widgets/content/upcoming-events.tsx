@@ -13,12 +13,13 @@ const root: React.CSSProperties = { position: 'absolute', inset: 0, padding: cel
   display: 'flex', flexDirection: 'column', overflow: 'hidden' };
 const g3: React.CSSProperties = { display: 'grid', gridTemplateRows: 'auto 1fr auto', gap: cell(SCALE.gap), height: '100%' };
 
-function ChipBody({ count, duration }: { count: number; duration?: boolean }) {
+function ChipBody({ count, duration, subtitle }: { count: number; duration?: boolean; subtitle?: boolean }) {
   return (
     <div style={{ display: 'grid', gridAutoRows: '1fr', gap: cell(0.05) }}>
       {EVENTS.slice(0, count).map((ev) => (
         <EventChip key={ev.title} time={ev.time} title={ev.title} color={ev.color}
-          duration={duration ? ev.duration : undefined} />
+          duration={duration ? ev.duration : undefined}
+          subtitle={subtitle ? ev.subtitle : undefined} />
       ))}
     </div>
   );
@@ -63,22 +64,7 @@ export function UpcomingEvents({ w, h }: WidgetContentProps) {
     <div style={{ ...root, ...g3 }}>
       <Header label="Upcoming Events"
         aside={<div style={{ fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>Wed Jun 10</div>} />
-      <div style={{ display: 'grid', gridAutoRows: '1fr', gap: cell(0.05) }}>
-        {EVENTS.slice(0, 2).map((ev) => (
-          <div key={ev.title} style={{ display: 'flex', alignItems: 'center', gap: cell(0.07),
-            borderRadius: cell(0.06), padding: `${cell(0.05)} ${cell(0.07)}`,
-            background: `${ev.color}1f`, borderLeft: `${cell(0.025)} solid ${ev.color}` }}>
-            <div>
-              <div style={{ fontSize: cell(SCALE.fontTitle), fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap' }}>{ev.time}</div>
-              <div style={{ fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>{ev.duration}</div>
-            </div>
-            <div style={{ flex: 1, textAlign: 'right', minWidth: 0 }}>
-              <div style={{ fontSize: cell(SCALE.fontTitle), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</div>
-              <div style={{ fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>{ev.subtitle}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <ChipBody count={2} duration subtitle />
       <div />
     </div>
   );
