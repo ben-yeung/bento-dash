@@ -5,6 +5,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { X } from 'lucide-react';
 import styles from './Widget.module.css';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
+import { tokenStyle } from '@/components/widgets/content/scale';
 import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
 import { useBoard } from '@/lib/state/boardStore';
 import type { WidgetLayout } from '@/lib/grid/types';
@@ -65,7 +66,15 @@ export function Widget({
       {...(interactive ? listeners : {})}
       {...attributes}
     >
-      <div style={{ position: 'absolute', inset: 0, fontSize: 'calc(var(--cell-size, 100px) / 10)' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          containerType: 'size',
+          color: 'var(--text)',
+          ...tokenStyle(),
+        }}
+      >
         <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
       </div>
       {snapTarget && (
