@@ -32,7 +32,7 @@ function MonthGrid({ lastDay, fontRatio, gap }: { lastDay: number; fontRatio: nu
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
-      placeItems: 'center', gap: cell(gap), fontSize: cell(fontRatio), color: '#e6edf6',
+      placeItems: 'center', gap: cell(gap), fontSize: cell(fontRatio), color: 'var(--text)',
     }}>
       {DOW_LABELS.map((d, i) => (
         <span key={`dow-${i}`} style={{ color: 'var(--muted)' }}>{d}</span>
