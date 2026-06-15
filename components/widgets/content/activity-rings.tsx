@@ -49,7 +49,7 @@ export function ActivityRings({ w, h }: WidgetContentProps) {
   if (w === 1 && h === 1) {
     return (
       <div style={{ ...root, ...center }}>
-        <ConcRings size={0.56} rings={RINGS} stroke={0.05} />
+        <ConcRings size={0.66} rings={RINGS} stroke={0.05} />
       </div>
     );
   }
