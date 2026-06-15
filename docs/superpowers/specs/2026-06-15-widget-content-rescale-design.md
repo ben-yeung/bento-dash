@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-15
 **Supersedes the scaling approach in:** `2026-06-10-widget-content-design.md` (the 10-widget catalog and supported sizes stay; only the sizing/layout system and the per-size layouts change)
-**Mockups:** `.superpowers/brainstorm/997-1781557254/content/` — `redesign-direction-v2.html`, `redesign-direction-v3.html`, `schedule-rightalign-v4.html`
+**Canonical reference (visual source of truth):** `.superpowers/brainstorm/997-1781557254/content/all-widgets-passover-v3.html` — every widget × supported size at the final scale/layout, driven by a single `--cell` so proportions match production. Earlier exploration: `redesign-direction-v2.html`, `redesign-direction-v3.html`. The mockup uses bordered-circle rings and CSS heatmaps as approximations; production uses SVG equivalents (see Charts/SVG).
 
 ---
 
@@ -44,15 +44,20 @@ Add a token block, scoped to the tile content wrapper, expressed as ratios of `-
 | `--w-pad` | `0.09` | 18px | tile padding |
 | `--w-gap` | `0.06` | 12px | region / row gap |
 | `--w-font-label` | `0.075` | 15px | uppercase context labels |
-| `--w-font-detail` | `0.085` | 17px | secondary / supporting text |
-| `--w-font-title` | `0.11` | 22px | widget title, list item titles |
-| `--w-font-value` | `0.16` | 32px | secondary metrics, list times |
+| `--w-font-detail` | `0.095` | 19px | secondary / supporting text |
+| `--w-font-title` | `0.13` | 26px | widget title, list item titles, event titles |
+| `--w-font-value` | `0.18` | 36px | secondary metrics, list times, streak counts |
 | `--w-font-hero` | `0.27` | 54px | the one hero figure per layout |
 
 Notes:
 - These are **multiples of `--cell-size`** (e.g. `--w-font-hero: calc(var(--cell-size) * 0.27)`), so they scale with the board and stay uniform across tiles.
-- The hero:label ratio is ~3.5:1 (was ~5:1) — the balance the user approved in v3.
-- A layout chooses which token its hero uses. Small tiles (1×1) may promote a value to hero scale; large tiles (4×2) may use an even larger one-off (`calc(var(--cell-size) * 0.32)`) — those are explicit per-layout choices, not automatic.
+- These were tuned interactively against the full passover mockup (see Canonical reference) using Steps as the baseline widget.
+- A layout chooses which token its hero uses, and may apply a **per-layout one-off ratio** when the hero should be bigger/smaller than the standard token. Settled examples (ratio of cell):
+  - Budget 3×2/4×2 spent hero `0.30`; budget 2×2 donut center `0.24`; the "left" remaining figure `0.15`.
+  - Calorie ring center `0.18–0.20`; calorie 2×1 count `0.22`; "/ goal" sub `0.13`.
+  - Weather 1×1 temp `0.32`, 2×2 `0.40`, 3×2 `0.42`; forecast icons `0.16`.
+  - Mini-calendar day grid `0.10–0.13`; 1×1 day number `0.34`.
+  - Streak count `0.12`; heatmap/mini-cell square `0.06`; habit dots `0.10` (2×2/3×2), `0.20` (1×1/2×1).
 
 ### Where the tokens live
 
@@ -92,11 +97,26 @@ Lists that should distribute evenly (schedule, events, habits, meals) use an inn
 
 ### Charts / SVG
 
-SVGs keep an intrinsic `viewBox` (so internal geometry stays proportional) and are sized in the same scale system rather than fixed px:
-- Donuts / rings: size from a value token, e.g. `width: calc(var(--cell-size) * 1.1)` on 2×2, or `min(80cqw, 80cqh)` where they should simply fill their cell.
-- Bar charts: the chart container is `flex: 1` (fills the body); bars use `flex` weights for width and `%`/`cqh` for height, so the chart fills its region at any scale.
+All graphical elements are sized in the same `--cell-size` scale system, never fixed px:
+- **Rings/donuts are thin strokes at a generous diameter.** The mockup approximates them with a bordered circle (`border-width ≈ 0.05–0.075 × cell`, two sides accented). The real component should use an SVG `viewBox` + `stroke-dasharray` for an arbitrary-percentage arc, but the **visual intent is a thin band, not a thick pie** — this was an explicit correction. Diameters (ratio of cell): budget 1×1 `0.62`, budget 2×2 `1.32`; calorie 1×1 `0.72`, 2×2 `1.18`, 3×2 `1.15`; activity concentric outer `0.56` (1×1) / `0.50` (2×1) / `0.80` (2×2) / `1.15` (3×2), inner rings at `0.66×` and `0.34×` of the outer. Calorie rings use the **green** accent `#6bcb77` (matching the 2×1 progress bar), not red.
+- **Bar charts:** chart container is `flex: 1` (fills the body); bars use `flex` weights for width and `%` height of the container, so the chart fills its region at any scale. The Steps 3×2 chart has a labelled **am/pm hourly x-axis** beneath the bars.
+- **Heatmaps / mini grids** (habit week, mini-calendar): CSS grid `repeat(7, 1fr)` × `grid-auto-rows: 1fr` filling the region; cells `border-radius: 2px`.
 
-This removes the remaining fixed-px graphics that didn't track the text.
+This removes the fixed-px graphics that didn't track the text.
+
+---
+
+## Conventions (settled during the passover)
+
+These apply across widgets so the board reads consistently:
+
+- **Top-left label:** every multi-cell tile carries an uppercase muted `--w-font-label` context label in the header's top-left (the "2×2 style"), including the 3×2/4×2 sizes. 1×1 tiles may use it or go label-less when the hero needs the room.
+- **Calendar weeks run Sunday → Saturday** (header `S M T W T F S`); the mini-calendar offsets the first day accordingly (June 2026 starts Monday → one leading blank). Today is highlighted with a filled accent circle.
+- **Event/schedule rows:** time on the **left**, title **right-aligned**. Time uses `--w-font-value` weight 700 (full color); title uses `--w-font-title` at weight ~400 so it reads **100+ lighter than the time**. Duration is `--w-font-detail` muted. (Today's Schedule 1×2 stacks: time top-left, title bottom-right.)
+- **Habits are colour-coded per habit** from the lifestyle palette (amber `#f59e0b`, green `#10b981`, indigo `#6366f1`, pink `#ec4899`, sky `#38bdf8`). Done = filled dot in the habit colour; pending = ghost `#2a3550`.
+- **Streaks:** habit 1×1/2×1/2×2 show a 🔥 + **count** (white, `--w-font-value`-ish at `0.12`). The count is the week's completion total and matches the 3×2 weekly heatmap (e.g. Run 5, Reading 6).
+- **Money "remaining" is green** (`#6bd99a`) everywhere it appears (budget 3×2/4×2).
+- **Budget 3×2 and 4×2 share one layout:** header (label left, green "$X left" top-right) / body (large `$spent / $total` hero + green status, then a horizontal **Recent transactions** row — merchant top-left, amount bottom-right, no minus sign) / footer (segmented bar above a 4-column category legend with rounded-square swatches).
 
 ---
 
@@ -106,13 +126,17 @@ Extract repeated pieces into `components/widgets/content/_shared/` so density/sc
 
 | Component | Props | Used by |
 |---|---|---|
-| `Header` | `label`, `title`, optional `aside` | every 2×2+ widget |
-| `Donut` | `pct`, `centerLabel`, `centerSub?`, color | budget (sm), calorie, activity 1×1 |
-| `Ring` / `ConcRings` | per-ring pct + color | activity-rings |
-| `SegmentedBar` | segments `[{weight,color}]`, optional remainder | budget |
+| `Header` | `label`, optional `aside` | every 2×2+ widget (top-left label) |
+| `Donut` | `pct`, `centerLabel`, `centerSub?`, color, `size` | budget (sm), calorie |
+| `ConcRings` | per-ring `{pct,color}`, `size` | activity-rings (thin concentric) |
+| `SegmentedBar` | segments `[{weight,color}]`, remainder | budget |
 | `ProgressBar` | `pct`, color | calorie, steps |
-| `StatStrip` | `[{label,value}]` | steps, calorie, weather |
+| `MetricBar` | colored `label`, `current/goal`, `pct`, color | activity 3×2, calorie 3×2 (label + cur/goal above bar) |
+| `StatStrip` | `[{label,value}]` | steps, calorie 2×2, weather |
 | `EventChip` | `time`, `duration?`, `title`, color, `align` | schedule, upcoming-events |
+| `WeekHeatmap` | rows `[{color, days[]}]`, day-letter header | habit 3×2 |
+| `StreakBadge` | `count` | habit 1×1/2×1/2×2 (🔥 + white count) |
+| `TransactionRow` | `[{merchant, amount}]` | budget 3×2/4×2 (merchant top-left, amount bottom-right) |
 
 All consume the token vars, so a `Header` label is identical everywhere.
 
@@ -120,70 +144,69 @@ All consume the token vars, so a `Header` label is identical everywhere.
 
 ## Per-widget layout direction
 
-The hero of each layout is **bold**. All multi-row variants use the header/body/footer fill grid. Calendar-family titles are **right-aligned with time on the left** (user request). Donut is reserved for **small** budget sizes.
+All multi-row variants use the header/body/footer fill grid. The **canonical visual reference is the passover mockup** (see top of doc); the notes below capture the final intent. Donut/ring is reserved for **small** budget sizes; large budget uses a number hero.
 
 ### Finance
 
 **Budget Summary** — `1×1`, `2×2`, `3×2`, `4×2`
-- **1×1:** "Jun" label; **donut** hero centered, center label `$1.5k`.
-- **2×2:** label header; **donut** hero (large) centered, center `$1.5k` / "left of $5k".
-- **3×2:** header (`June 2026 · Monthly Budget` + "15 days left"); body hero = **`$3,500`** with `/ $5,000` at value scale + "$1,500 left · on track" detail; footer = **segmented bar** + 4 labeled category amounts. (v3 left tile.)
-- **4×2:** same as 3×2 but the footer category breakdown spreads to 4 columns with the bar full-width; hero may use the larger one-off ratio.
+- **1×1:** "Jun" label; thin **donut** centered, center `$1.5k` with "left" sub inside the ring.
+- **2×2:** "June · Budget" label; large thin **donut** centered, center `$1.5k` / "left of $5k".
+- **3×2 and 4×2 (same layout):** header = label top-left + green **"$1,500 left"** (`0.15`) top-right; body = large **`$3,500`** (`0.30`) `/ $5,000` muted hero + green "on track for the month", then a horizontal **Recent transactions** row (merchant top-left / amount bottom-right, no minus); footer = **segmented bar** above a 4-column category legend (rounded-square swatch + name + amount). 4×2 simply has more horizontal room (5 transactions).
 
 ### Health
 
-**Activity Rings** — `1×1`, `2×1`, `2×2`, `3×2`
-- **1×1:** concentric rings fill the tile.
-- **2×1:** rings left (fill height), 3 stat rows right (Move/Exercise/Stand) at detail scale, value bold.
-- **2×2:** header; body = rings hero centered; footer = 3 stat rows.
-- **3×2:** rings hero left (fill); center = per-metric progress bars at value scale; right = weekly mini bars.
+**Activity Rings** — `1×1`, `2×1`, `2×2`, `3×2` (concentric thin rings; Move `#ff6b6b` / Exercise `#ffd93d` / Stand `#6bcb77`)
+- **1×1:** concentric rings centered.
+- **2×1:** "Activity" label; rings left, 3 stat rows (Move/Exercise/Stand) right.
+- **2×2:** "Today's Activity" label; rings centered; footer = all **3** stat rows.
+- **3×2:** label; rings left, then a single stacked column (matching calorie 3×2): 3 `MetricBar`s (colored label + `cur/goal` above bar) on top, divider, recent-workouts list below.
 
-**Calorie Tracker** — `1×1`, `2×1`, `2×2`, `3×2`
-- **1×1:** donut hero, center `1,840`.
-- **2×1:** hero `1,840` + `/ 2,400` detail; progress bar fills width.
-- **2×2:** header; hero `1,840 / 2,400 kcal`; progress bar; macros stat strip footer.
-- **3×2:** left column hero + bar + macro bars; right column meal log (`EventChip`-style rows distributed `1fr`).
+**Calorie Tracker** — `1×1`, `2×1`, `2×2`, `3×2` (green ring)
+- **1×1:** thin donut centered, center `1,840` + "CAL" sub inside.
+- **2×1:** "Calories" label top-left; large `1,840` + `/ 2,400` (`0.13`); progress bar; P/C/F macros row beneath the bar.
+- **2×2:** label; ring hero (`1,840` / "of 2,400" inside); footer = P/C/F `StatStrip`.
+- **3×2:** label; ring left, then one stacked column: 3 macro `MetricBar`s (Protein/Carbs/Fat, cur/goal above bar) + divider + meal log.
 
-**Steps** — `1×1`, `2×1`, `2×2`, `3×2`
-- **1×1:** "Steps" label; hero step count (accent); thin progress bar; "82% of 10k" detail.
-- **2×1:** hero count + `/ 10,000`; bar; Distance/Active inline.
-- **2×2:** hero count; bar; Distance/Active/Floors `StatStrip` footer.
-- **3×2:** hero count header; **hourly bar chart fills the body** (`flex:1`); `StatStrip` footer.
+**Steps** — `1×1`, `2×1`, `2×2`, `3×2` (accent `#38bdf8`)
+- **1×1:** "Steps" label; hero count; bar; "82% of 10k".
+- **2×1:** "Steps" label top-left; count + `/ 10,000`; bar; Distance/Active.
+- **2×2:** label; hero count; bar; "82% of 10k"; Distance/Active/Floors `StatStrip`.
+- **3×2:** "Steps" label left + **`8,190 / 10,000`** top-right (value scale, no %); **hourly bar chart fills the body** with an **am/pm x-axis**; `StatStrip` footer.
 
 ### Calendar
 
-**Upcoming Events** — `1×1`, `2×1`, `2×2`, `3×2`
-- **1×1:** "Next · 9:00" label; event name hero (right/left as fits small); color dot + "in 25 min".
-- **2×1:** 2 `EventChip` rows.
-- **2×2:** header; event chips distributed `1fr`, **time left / title right-aligned**, color left bar.
-- **3×2:** chips with duration + optional subtitle, distributed `1fr`.
+**Upcoming Events** — `1×1`, `2×1`, `2×2`, `3×2` (time left / title right-aligned; time 700, title ~400)
+- **1×1:** "Next" label; time hero; title; color dot + "in 25 min".
+- **2×1:** 2 `EventChip` rows distributed.
+- **2×2:** label; chips distributed `1fr`.
+- **3×2:** chips with duration + subtitle, distributed `1fr`.
 
 **Mini Calendar** — `1×1`, `2×2`, `3×2`, `3×3`
-- **1×1:** month (accent) + hero day number + weekday + event dot.
-- **2×2 / 3×2 / 3×3:** month grid fills the body with `grid-template-columns: repeat(7,1fr)` and `grid-auto-rows: 1fr` so the weeks fill the tile; today highlighted; event dots. 3×3 adds month/year header + nav.
+- **1×1:** month (accent) + hero day number + weekday.
+- **2×2 / 3×2 / 3×3:** **Sun→Sat** month grid fills the body (`repeat(7,1fr)` × `grid-auto-rows:1fr`); today = filled accent circle; enlarged day font. 3×3 adds nav arrows.
 
 **Today's Schedule** — `1×2`, `2×2`, `2×3`
-- All sizes: header + timeline of `EventChip`s, **time left / title right-aligned**, color left bar, distributed `grid-auto-rows: 1fr`. Times at value scale, titles at title scale, duration at label scale. (v4 mockup.) Larger sizes show more events + a "now" marker.
+- header + `EventChip` timeline, time left / title right-aligned, color left bar, distributed `grid-auto-rows: 1fr`. **1×2** stacks each chip (time top-left, title bottom-right). Larger sizes show more events + duration.
 
 ### Lifestyle
 
-**Habit Tracker** — `1×1`, `2×1`, `2×2`, `3×2`
-- **1×1:** "Habits" label; `3/5` hero; two rows of dots.
-- **2×1:** header left, `3/5` hero right; single row of dots filling width.
-- **2×2:** header (`Done 3/5`); habit rows (dot + name + done indicator) distributed `1fr`.
-- **3×2:** left = habit rows; right = **weekly heatmap that fills its column** (`grid-template-columns: repeat(7,1fr)`, `grid-auto-rows: 1fr`) — fixes the tiny floating grid.
+**Habit Tracker** — `1×1`, `2×1`, `2×2`, `3×2` (per-habit colors)
+- **1×1:** "Habits" label + `3/5`; enlarged dots in a **3-top / 2-bottom** layout.
+- **2×1:** label + `3/5`; row of dots, each with a 🔥 **count** beneath, vertically centered.
+- **2×2:** label + `3/5`; habit rows (colored dot + name + 🔥 **week count**) distributed `1fr`.
+- **3×2:** label + `3/5`; left = habit list (distributed like 2×2), right = **`WeekHeatmap`** with `S M T W T F S` header, one colored row per habit, filling the column.
 
 **Weather** — `1×1`, `2×1`, `2×2`, `3×2`
-- **1×1:** icon + hero `72°` + "Sunny"; city top-right.
-- **2×1:** icon | hero temp + H/L | city/feels-like.
-- **2×2:** header + icon; hero temp + condition; `StatStrip` (H/L/Wind/UV) footer.
-- **3×2:** header; current row; **5-day forecast strip fills the footer** (`repeat(5,1fr)`).
+- **1×1:** icon + city top-right; temp (`0.32`) bottom-right + "Sunny".
+- **2×1:** icon | hero temp + H/L | city / feels-like.
+- **2×2:** label + icon; hero temp (`0.40`) + "Sunny · H/L"; footer = **3-day forecast** row.
+- **3×2:** label + icon; hero temp (`0.42`) + H/L/Wind/UV stat band; footer = **5-day forecast** strip (`repeat(5,1fr)`, larger icons).
 
 **Daily Note** — `1×1`, `2×2`, `2×3`, `3×2`
-- **1×1:** date label + pencil; note text fills (clamp).
+- **1×1:** date + pencil header; **checklist only** (no note text).
 - **2×2:** header + note body fills.
-- **2×3:** header + note; checklist footer (rows distributed).
-- **3×2:** note left, vertical divider, checklist right (rows distributed `1fr`).
+- **2×3:** header + note; checklist footer.
+- **3×2:** note left, divider, checklist right.
 
 ---
 
@@ -194,7 +217,7 @@ The hero of each layout is **bold**. All multi-row variants use the header/body/
 | `app/globals.css` | (optional) bump `.board` `max-width` for true 2k/4k growth — see Open question |
 | `components/widgets/content/scale.ts` | **Create** — `SCALE` ratio constants + a helper that emits the CSS-var style object |
 | `components/board/Widget.tsx` | Replace the `font-size/10` wrapper with the token + `container-type: size` wrapper |
-| `components/widgets/content/_shared/*` | **Create** shared sub-components (`Header`, `Donut`, `Ring`, `SegmentedBar`, `ProgressBar`, `StatStrip`, `EventChip`) |
+| `components/widgets/content/_shared/*` | **Create** shared sub-components (`Header`, `Donut`, `ConcRings`, `SegmentedBar`, `ProgressBar`, `MetricBar`, `StatStrip`, `EventChip`, `WeekHeatmap`, `StreakBadge`, `TransactionRow`) |
 | `components/widgets/content/budget-summary.tsx` | Rewrite layouts (number-hero large, donut small) |
 | `components/widgets/content/activity-rings.tsx` | Rewrite layouts |
 | `components/widgets/content/calorie-tracker.tsx` | Rewrite layouts |
