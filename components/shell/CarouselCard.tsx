@@ -1,39 +1,24 @@
 'use client';
+import type { CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 import styles from './CarouselCard.module.css';
+import { ScaledWidgetContent } from '@/components/widgets/ScaledWidgetContent';
+import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
 import type { WidgetDefinition } from '@/lib/widgets/registry';
 import type { SizePreset } from '@/lib/grid/sizes';
-import type { GridMetrics } from '@/lib/grid/collision';
-import type { Category } from '@/lib/grid/types';
+
+// Menu preview cell px, smaller than a board cell so the widget reads as a shrunk tile.
+const MENU_PREVIEW_CELL = 34;
 
 interface SizeChipProps {
   preset: SizePreset;
-  category: Category;
-  widgetType: string;
   onAdd: (w: number, h: number) => void;
 }
 
-function SizeChip({ preset, category, widgetType, onAdd }: SizeChipProps) {
-  const { listeners, attributes, setNodeRef, isDragging } = useDraggable({
-    id: `palette:${category}:${widgetType}:${preset.w}x${preset.h}`,
-  });
-
-  const handleClick = () => {
-    if (!isDragging) {
-      onAdd(preset.w, preset.h);
-    }
-  };
-
+function SizeChip({ preset, onAdd }: SizeChipProps) {
   return (
-    <button
-      ref={setNodeRef}
-      className={styles.sizeChip}
-      {...listeners}
-      {...attributes}
-      data-dragging={isDragging}
-      onClick={handleClick}
-    >
+    <button type="button" className={styles.sizeChip} onClick={() => onAdd(preset.w, preset.h)}>
       {preset.name}
     </button>
   );
@@ -41,22 +26,39 @@ function SizeChip({ preset, category, widgetType, onAdd }: SizeChipProps) {
 
 export interface CarouselCardProps {
   definition: WidgetDefinition;
-  metrics: GridMetrics;
   isOpen: boolean;
   onToggle: () => void;
   onAdd: (w: number, h: number) => void;
 }
 
-export function CarouselCard({ definition, metrics: _metrics, isOpen, onToggle, onAdd }: CarouselCardProps) {
+export function CarouselCard({ definition, isOpen, onToggle, onAdd }: CarouselCardProps) {
+  const defaultSize = definition.supportedSizes[0];
+  const dragId = `palette:${definition.category}:${definition.type}:${defaultSize.w}x${defaultSize.h}`;
+  const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId });
+  const ContentComponent = definition.ContentComponent ?? WidgetSkeleton;
+
   return (
     <div className={styles.card}>
       <button
+        ref={setNodeRef}
+        type="button"
         className={styles.preview}
-        onClick={onToggle}
+        style={{ '--cell-size': `${MENU_PREVIEW_CELL}px` } as CSSProperties}
+        data-dragging={isDragging}
+        onClick={() => {
+          if (!isDragging) onToggle();
+        }}
         aria-expanded={isOpen}
         aria-label={definition.label}
+        {...listeners}
+        {...attributes}
       >
-        <span className={styles.dot} style={{ background: definition.accentColor }} />
+        <ScaledWidgetContent
+          category={definition.category}
+          w={defaultSize.w}
+          h={defaultSize.h}
+          ContentComponent={ContentComponent}
+        />
         <span className={styles.label}>{definition.label}</span>
       </button>
       <AnimatePresence>
@@ -71,16 +73,10 @@ export function CarouselCard({ definition, metrics: _metrics, isOpen, onToggle, 
             <span className={styles.pickerLabel}>{definition.label}</span>
             <div className={styles.chips}>
               {definition.supportedSizes.map((preset) => (
-                <SizeChip
-                  key={preset.name}
-                  preset={preset}
-                  category={definition.category}
-                  widgetType={definition.type}
-                  onAdd={onAdd}
-                />
+                <SizeChip key={preset.name} preset={preset} onAdd={onAdd} />
               ))}
             </div>
-            <span className={styles.hint}>click to add · drag to place</span>
+            <span className={styles.hint}>click to add · drag card to place</span>
           </motion.div>
         )}
       </AnimatePresence>
