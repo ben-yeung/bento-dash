@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import { cell, SCALE } from './scale';
+import { cell, fcell, SCALE } from './scale';
 import { Header, ProgressBar, StatStrip } from './_shared';
 
 const ACCENT = '#38bdf8';
@@ -29,7 +29,7 @@ export function Steps({ w, h }: WidgetContentProps) {
     return (
       <div style={{ ...root, justifyContent: 'center' }}>
         <div style={label}>Steps</div>
-        <div style={{ fontSize: cell(0.2), fontWeight: 800, color: ACCENT }}>8,190</div>
+        <div style={{ fontSize: fcell(0.2), fontWeight: 800, color: ACCENT }}>8,190</div>
         <div style={{ margin: `${cell(0.04)} 0` }}>
           <ProgressBar pct={PCT} color={ACCENT} />
         </div>

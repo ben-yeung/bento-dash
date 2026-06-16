@@ -1,4 +1,4 @@
-import { cell, SCALE } from '../scale';
+import { cell, fcell, SCALE } from '../scale';
 
 interface DonutProps {
   pct: number;            // 0–100 arc fill
@@ -25,7 +25,7 @@ export function Donut({ pct, color, size, stroke = 0.05, label, sub }: DonutProp
       {(label || sub) && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-          {label && <div style={{ fontSize: cell(size * 0.28), fontWeight: 800, lineHeight: 1 }}>{label}</div>}
+          {label && <div style={{ fontSize: fcell(size * 0.28), fontWeight: 800, lineHeight: 1 }}>{label}</div>}
           {sub && <div style={{ fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>{sub}</div>}
         </div>
       )}

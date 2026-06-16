@@ -1,7 +1,7 @@
 import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
 import { Sun, CloudSun, Cloud, CloudRain } from 'lucide-react';
-import { cell, SCALE } from './scale';
+import { cell, fcell, SCALE } from './scale';
 import { Header } from './_shared';
 
 const ACCENT = '#38bdf8';
@@ -68,7 +68,7 @@ export function Weather({ w, h }: WidgetContentProps) {
           <div style={label}>SF</div>
         </div>
         <div style={{ marginTop: 'auto', textAlign: 'right' }}>
-          <div style={{ fontSize: cell(0.32), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{STATS.temp}</div>
+          <div style={{ fontSize: fcell(0.32), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{STATS.temp}</div>
           <div style={detail}>{STATS.condition}</div>
         </div>
       </div>
@@ -101,7 +101,7 @@ export function Weather({ w, h }: WidgetContentProps) {
           <CondIcon cond="sun" size={0.2} />
         </div>
         <div style={{ alignSelf: 'center' }}>
-          <div style={{ fontSize: cell(0.4), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{STATS.temp}</div>
+          <div style={{ fontSize: fcell(0.4), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{STATS.temp}</div>
           <div style={detail}>{STATS.condition} · H:{STATS.high}° L:{STATS.low}°</div>
         </div>
         <Forecast days={FORECAST.slice(0, 3)} iconSize={0.14} />
@@ -115,7 +115,7 @@ export function Weather({ w, h }: WidgetContentProps) {
       <Header label={STATS.city} aside={<CondIcon cond="sun" size={0.22} />} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: cell(0.08) }}>
         <div>
-          <div style={{ fontSize: cell(0.42), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{STATS.temp}</div>
+          <div style={{ fontSize: fcell(0.42), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{STATS.temp}</div>
           <div style={detail}>{STATS.condition} · feels {STATS.feels}°</div>
         </div>
         <div style={{ display: 'flex', gap: cell(0.09), textAlign: 'center' }}>

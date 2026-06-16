@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import { cell } from './scale';
+import { cell, fcell } from './scale';
 import { Header, StreakBadge, WeekHeatmap } from './_shared';
 
 const AMBER = '#f59e0b';
@@ -42,7 +42,7 @@ function Dot({ color, size }: { color: string; size: number }) {
 }
 
 const asideCount = (
-  <div style={{ fontSize: cell(0.13), fontWeight: 700, color: GREEN }}>{DONE}</div>
+  <div style={{ fontSize: fcell(0.13), fontWeight: 700, color: GREEN }}>{DONE}</div>
 );
 
 export function HabitTracker({ w, h }: WidgetContentProps) {
@@ -50,7 +50,7 @@ export function HabitTracker({ w, h }: WidgetContentProps) {
     return (
       <div style={root}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ fontSize: cell(0.075), textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Habits</div>
+          <div style={{ fontSize: fcell(0.075), textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Habits</div>
           {asideCount}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -90,7 +90,7 @@ export function HabitTracker({ w, h }: WidgetContentProps) {
           {HABITS.slice(0, 4).map((hab) => (
             <div key={hab.name} style={{ display: 'flex', alignItems: 'center', gap: cell(0.08) }}>
               <Dot color={hab.color} size={0.1} />
-              <span style={{ flex: 1, fontWeight: 500, fontSize: cell(0.13),
+              <span style={{ flex: 1, fontWeight: 500, fontSize: fcell(0.13),
                 color: hab.color === PENDING ? 'var(--muted)' : 'var(--text)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hab.name}</span>
               <StreakBadge count={hab.streak} />
@@ -110,7 +110,7 @@ export function HabitTracker({ w, h }: WidgetContentProps) {
           {HEATMAP_ROWS.map((row) => (
             <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: cell(0.08) }}>
               <Dot color={row.color} size={0.1} />
-              <span style={{ flex: 1, fontWeight: 500, fontSize: cell(0.13) }}>{row.label}</span>
+              <span style={{ flex: 1, fontWeight: 500, fontSize: fcell(0.13) }}>{row.label}</span>
             </div>
           ))}
         </div>

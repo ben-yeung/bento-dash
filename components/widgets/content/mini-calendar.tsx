@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import { cell, SCALE } from './scale';
+import { cell, fcell, SCALE } from './scale';
 
 const MONTH = 'June';
 const YEAR = 2026;
@@ -32,7 +32,7 @@ function MonthGrid({ lastDay, fontRatio, gap }: { lastDay: number; fontRatio: nu
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
-      placeItems: 'center', gap: cell(gap), fontSize: cell(fontRatio), color: 'var(--text)',
+      placeItems: 'center', gap: cell(gap), fontSize: fcell(fontRatio), color: 'var(--text)',
     }}>
       {DOW_LABELS.map((d, i) => (
         <span key={`dow-${i}`} style={{ color: 'var(--muted)' }}>{d}</span>
@@ -60,7 +60,7 @@ export function MiniCalendar({ w, h }: WidgetContentProps) {
     return (
       <div style={{ ...root, justifyContent: 'center' }}>
         <div style={{ fontSize: cell(SCALE.fontLabel), textTransform: 'uppercase', letterSpacing: '0.07em', color: ACCENT }}>Jun</div>
-        <div style={{ fontSize: cell(0.34), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{TODAY}</div>
+        <div style={{ fontSize: fcell(0.34), fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1 }}>{TODAY}</div>
         <div style={{ fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>Wednesday</div>
       </div>
     );

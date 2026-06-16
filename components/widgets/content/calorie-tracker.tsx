@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import { cell, SCALE } from './scale';
+import { cell, fcell, SCALE } from './scale';
 import { Header, Donut, ProgressBar, StatStrip, MetricBar } from './_shared';
 
 const GREEN = '#6bcb77';
@@ -37,8 +37,8 @@ export function CalorieTracker({ w, h }: WidgetContentProps) {
         <Header label="Calories" />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: cell(0.045) }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: cell(0.06) }}>
-            <div style={{ fontSize: cell(0.22), fontWeight: 700 }}>1,840</div>
-            <div style={{ fontSize: cell(0.13), fontWeight: 500, color: 'var(--muted)' }}>/ 2,400</div>
+            <div style={{ fontSize: fcell(0.22), fontWeight: 700 }}>1,840</div>
+            <div style={{ fontSize: fcell(0.13), fontWeight: 500, color: 'var(--muted)' }}>/ 2,400</div>
           </div>
           <ProgressBar pct={PCT} color={GREEN} />
           <div style={{ display: 'flex', gap: cell(0.1), fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' }}>

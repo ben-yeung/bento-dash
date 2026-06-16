@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import { cell, SCALE } from './scale';
+import { cell, fcell, SCALE } from './scale';
 import { Header, Donut, SegmentedBar, TransactionRow } from './_shared';
 
 const CATS = [
@@ -61,14 +61,14 @@ export function BudgetSummary({ w, h }: WidgetContentProps) {
   return (
     <div style={{ ...root, ...g3 }}>
       <Header label="June 2026 · Monthly Budget"
-        aside={<div style={{ fontSize: cell(0.15), fontWeight: 700, color: GREEN }}>$1,500 left</div>} />
+        aside={<div style={{ fontSize: fcell(0.15), fontWeight: 700, color: GREEN }}>$1,500 left</div>} />
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: cell(0.07) }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: cell(0.06) }}>
-            <div style={{ fontSize: cell(0.30), fontWeight: 800 }}>$3,500</div>
+            <div style={{ fontSize: fcell(0.30), fontWeight: 800 }}>$3,500</div>
             <div style={{ fontSize: cell(SCALE.fontValue), fontWeight: 500, color: 'var(--muted)' }}>/ $5,000</div>
           </div>
-          <div style={{ fontSize: cell(0.095), color: GREEN, marginTop: cell(0.02) }}>on track for the month</div>
+          <div style={{ fontSize: fcell(0.095), color: GREEN, marginTop: cell(0.02) }}>on track for the month</div>
         </div>
         <div>
           <div style={{ fontSize: cell(SCALE.fontLabel), textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)', marginBottom: cell(0.035) }}>Recent</div>
