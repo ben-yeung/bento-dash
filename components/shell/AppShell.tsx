@@ -50,6 +50,16 @@ export function AppShell() {
   const { setPalettePreview, setFabOpen } = useDragStore();
 
   const [dragState, setDragState] = useState<DragState>({ phase: 'idle' });
+  // Mirror dragState in a ref updated synchronously inside the handlers. dnd-kit can fire
+  // onDragStart and onDragEnd in the same task before React commits the "dragging" render
+  // (rapid drags), so reading dragState from the render closure left handleDragEnd running
+  // with a stale `idle` value — it hit the early return and never reset, leaving phase stuck
+  // at 'dragging' (widget filtered out + drop-preview outline lingering until the next drag).
+  const dragStateRef = useRef<DragState>(dragState);
+  const setDrag = (s: DragState) => {
+    dragStateRef.current = s;
+    setDragState(s);
+  };
 
   // Re-resolve board positions whenever layoutMode changes so widgets
   // compact correctly under the new strategy immediately.
@@ -120,7 +130,7 @@ export function AppShell() {
     if (!widget) return;
     const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
-    setDragState({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
+    setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
   }
 
   function handleDragMove(e: DragMoveEvent) {
@@ -138,8 +148,9 @@ export function AppShell() {
       return;
     }
 
-    if (dragState.phase !== 'dragging') return;
-    const { activeId } = dragState;
+    const ds = dragStateRef.current;
+    if (ds.phase !== 'dragging') return;
+    const { activeId } = ds;
 
     if (!(e.activatorEvent instanceof PointerEvent)) return;
     const activator = e.activatorEvent;
@@ -151,7 +162,7 @@ export function AppShell() {
     const boardRect = board.getBoundingClientRect();
 
     const currentTargetId =
-      dragState.targetKind === 'swap' ? dragState.targetId : null;
+      ds.targetKind === 'swap' ? ds.targetId : null;
     const hitId = findWidgetUnderCursor(clientX, clientY, activeId, currentTargetId, boardRect);
     if (hitId) {
       const hit = committed.find((w) => w.id === hitId);
@@ -160,7 +171,7 @@ export function AppShell() {
       const isSameSize = hit.w === active.w && hit.h === active.h;
       if (isSameSize) {
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
-        setDragState({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
+        setDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
         // Cursor left-half of hit widget → insert before it; right-half → insert after it.
         // Lets a wider widget slip between two narrower ones at any sub-widget position.
@@ -170,13 +181,13 @@ export function AppShell() {
         const insertAfter = clientX - hitLeftPx > hitWidthPx / 2;
         const targetX = Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
-        setDragState({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
+        setDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
       // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
       const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
-      setDragState({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
+      setDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
   }
 
@@ -193,19 +204,24 @@ export function AppShell() {
       setPalettePreview(null);
       return;
     }
-    if (dragState.phase !== 'dragging') return;
-    const { activeId, targetKind, previewLayout } = dragState;
-    if (targetKind === 'swap') {
-      swapWidgets(activeId, dragState.targetId);
-    } else {
-      const moved = previewLayout.find((w) => w.id === activeId);
-      if (moved) moveWidget(activeId, { x: moved.x, y: moved.y });
+    // Read the live drag state from the ref (not the render closure) and ALWAYS reset to
+    // idle, even if phase reads non-'dragging'. A rapid drop can run this handler before the
+    // "dragging" render commits; bailing early there previously left phase stuck.
+    const ds = dragStateRef.current;
+    if (ds.phase === 'dragging') {
+      const { activeId, targetKind, previewLayout } = ds;
+      if (targetKind === 'swap') {
+        swapWidgets(activeId, ds.targetId);
+      } else {
+        const moved = previewLayout.find((w) => w.id === activeId);
+        if (moved) moveWidget(activeId, { x: moved.x, y: moved.y });
+      }
     }
-    setDragState({ phase: 'idle' });
+    setDrag({ phase: 'idle' });
   }
 
   function handleDragCancel() {
-    setDragState({ phase: 'idle' });
+    setDrag({ phase: 'idle' });
     setPaletteActiveId(null);
     setPalettePreview(null);
   }
