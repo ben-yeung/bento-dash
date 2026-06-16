@@ -1,63 +1,57 @@
+import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import React from 'react';
+import { cell, fcell, SCALE } from './scale';
+import { Header, ProgressBar, StatStrip } from './_shared';
 
 const ACCENT = '#38bdf8';
-const STEPS = 8190;
-const GOAL = 10000;
-const PCT = Math.round((STEPS / GOAL) * 100);
+const PCT = 82;
 
-const HOURLY = [
-  { hour: '6am', steps: 320 },
-  { hour: '7am', steps: 1100 },
-  { hour: '8am', steps: 480 },
-  { hour: '9am', steps: 310 },
-  { hour: '10am', steps: 220 },
-  { hour: '11am', steps: 190 },
-  { hour: '12pm', steps: 980 },
-  { hour: '1pm', steps: 640 },
-  { hour: '2pm', steps: 410 },
-  { hour: '3pm', steps: 280 },
-  { hour: '4pm', steps: 1260 },
+// 3×2 hourly bar chart — heights are percentages of the chart body, verbatim from the mockup.
+const HOURLY = [25, 85, 38, 24, 18, 15, 76, 50, 32, 22, 100];
+const AXIS = ['6am', '8am', '10am', '12pm', '2pm', '4pm'];
+
+const STATS = [
+  { label: 'Distance', value: '5.2km' },
+  { label: 'Active', value: '44m' },
+  { label: 'Floors', value: '8' },
 ];
-const MAX_H_STEPS = Math.max(...HOURLY.map((h) => h.steps));
+
+const root: React.CSSProperties = { position: 'absolute', inset: 0, padding: cell(SCALE.pad),
+  display: 'flex', flexDirection: 'column', overflow: 'hidden' };
+const g3: React.CSSProperties = { display: 'grid', gridTemplateRows: 'auto 1fr auto', gap: cell(SCALE.gap), height: '100%' };
+
+const label: React.CSSProperties = { fontSize: cell(SCALE.fontLabel), textTransform: 'uppercase',
+  letterSpacing: '0.07em', color: 'var(--muted)' };
+const detail: React.CSSProperties = { fontSize: cell(SCALE.fontDetail), color: 'var(--muted)' };
 
 export function Steps({ w, h }: WidgetContentProps) {
-  const s: React.CSSProperties = {
-    position: 'absolute', inset: 0, padding: '1.2em',
-    display: 'flex', flexDirection: 'column',
-    color: 'var(--text)', overflow: 'hidden',
-  };
-
-  function ProgressBar() {
-    return (
-      <div style={{ height: '0.5em', borderRadius: '0.3em', background: 'rgba(255,255,255,0.08)', overflow: 'hidden', margin: '0.5em 0' }}>
-        <div style={{ height: '100%', width: `${PCT}%`, background: ACCENT, borderRadius: '0.3em' }} />
-      </div>
-    );
-  }
-
   if (w === 1 && h === 1) {
     return (
-      <div style={s}>
-        <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Steps</div>
-        <div style={{ fontSize: '2.2em', fontWeight: 700, color: ACCENT, lineHeight: 1.2, marginTop: '0.2em' }}>{STEPS.toLocaleString()}</div>
-        <ProgressBar />
-        <div style={{ fontSize: '1em', color: 'var(--muted)' }}>{PCT}% of 10k</div>
+      <div style={{ ...root, justifyContent: 'center' }}>
+        <div style={label}>Steps</div>
+        <div style={{ fontSize: fcell(0.2), fontWeight: 800, color: ACCENT }}>8,190</div>
+        <div style={{ margin: `${cell(0.04)} 0` }}>
+          <ProgressBar pct={PCT} color={ACCENT} />
+        </div>
+        <div style={detail}>82% of 10k</div>
       </div>
     );
   }
 
   if (w === 2 && h === 1) {
     return (
-      <div style={s}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <div style={{ fontSize: '2.6em', fontWeight: 700, color: ACCENT }}>{STEPS.toLocaleString()}</div>
-          <div style={{ fontSize: '1.1em', color: 'var(--muted)' }}>/ {GOAL.toLocaleString()}</div>
-        </div>
-        <ProgressBar />
-        <div style={{ display: 'flex', gap: '1.2em', fontSize: '1.1em' }}>
-          <div><span style={{ color: 'var(--muted)' }}>Dist </span>5.2 km</div>
-          <div><span style={{ color: 'var(--muted)' }}>Active </span>44 min</div>
+      <div style={root}>
+        <Header label="Steps" />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: cell(0.04) }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <div style={{ fontSize: cell(SCALE.fontValue), fontWeight: 700, color: ACCENT }}>8,190</div>
+            <div style={detail}>/ 10,000</div>
+          </div>
+          <ProgressBar pct={PCT} color={ACCENT} />
+          <div style={{ ...detail, display: 'flex', gap: cell(0.16) }}>
+            <span>Dist <b style={{ color: 'var(--text)' }}>5.2km</b></span>
+            <span>Active <b style={{ color: 'var(--text)' }}>44m</b></span>
+          </div>
         </div>
       </div>
     );
@@ -65,58 +59,54 @@ export function Steps({ w, h }: WidgetContentProps) {
 
   if (w === 2 && h === 2) {
     return (
-      <div style={s}>
-        <div style={{ fontSize: '3.2em', fontWeight: 700, color: ACCENT, lineHeight: 1 }}>{STEPS.toLocaleString()}</div>
-        <div style={{ fontSize: '1.1em', color: 'var(--muted)', marginBottom: '0.4em' }}>steps today</div>
-        <ProgressBar />
-        <div style={{ display: 'flex', gap: '1em', marginTop: '0.8em' }}>
-          {[
-            { label: 'Distance', val: '5.2 km' },
-            { label: 'Active',   val: '44 min' },
-            { label: 'Floors',   val: '8'       },
-          ].map((m) => (
-            <div key={m.label} style={{ flex: 1 }}>
-              <div style={{ fontSize: '1.4em', fontWeight: 600 }}>{m.val}</div>
-              <div style={{ fontSize: '1em', color: 'var(--muted)' }}>{m.label}</div>
-            </div>
-          ))}
+      <div style={{ ...root, ...g3 }}>
+        <div style={label}>Today · Steps</div>
+        <div style={{ alignSelf: 'center' }}>
+          <div style={{ fontSize: cell(SCALE.fontHero), fontWeight: 800, color: ACCENT }}>8,190</div>
+          <div style={detail}>steps</div>
+          <div style={{ margin: `${cell(0.04)} 0` }}>
+            <ProgressBar pct={PCT} color={ACCENT} />
+          </div>
+          <div style={detail}>82% of 10k</div>
         </div>
+        <StatStrip items={STATS} />
       </div>
     );
   }
 
   // 3×2 — hourly bar chart
-  const barW = 14;
-  const chartH = 70;
   return (
-    <div style={s}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.4em' }}>
-        <div style={{ fontSize: '2.8em', fontWeight: 700, color: ACCENT }}>{STEPS.toLocaleString()}</div>
-        <div style={{ fontSize: '1.1em', color: 'var(--muted)' }}>/ {GOAL.toLocaleString()} steps</div>
-      </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '0.4em', marginBottom: '0.6em' }}>
-        {HOURLY.map((item, i) => {
-          const isLast = i === HOURLY.length - 1;
-          const bh = Math.max(4, (item.steps / MAX_H_STEPS) * chartH);
-          return (
-            <div key={item.hour} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2em' }}>
-              {isLast && <div style={{ fontSize: '0.8em', color: 'var(--muted)', marginBottom: '0.2em' }}>now</div>}
-              <div style={{
-                width: `${barW/10}em`, height: `${bh/10}em`, borderRadius: '0.3em',
-                background: isLast ? ACCENT : 'rgba(56,189,248,0.35)',
-              }} />
-              {i % 3 === 0 && <div style={{ fontSize: '0.7em', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{item.hour}</div>}
-            </div>
-          );
-        })}
-      </div>
-      <div style={{ display: 'flex', gap: '1.6em', borderTop: '1px solid var(--border-hairline)', paddingTop: '0.6em' }}>
-        {[{ label: 'Distance', val: '5.2 km' }, { label: 'Active', val: '44 min' }, { label: 'Floors', val: '8' }].map((m) => (
-          <div key={m.label}>
-            <div style={{ fontSize: '2em', fontWeight: 700 }}>{m.val}</div>
-            <div style={{ fontSize: '1em', color: 'var(--muted)' }}>{m.label}</div>
+    <div style={{ ...root, ...g3 }}>
+      <Header
+        label="Steps"
+        aside={
+          <div style={{ fontSize: cell(SCALE.fontValue), fontWeight: 700, color: ACCENT }}>
+            8,190 <span style={{ ...detail, fontWeight: 500, fontSize: cell(SCALE.fontTitle) }}>/ 10,000</span>
           </div>
-        ))}
+        }
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: cell(0.03), minHeight: 0 }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: cell(0.025), minHeight: 0 }}>
+          {HOURLY.map((pct, i) => (
+            <i key={i} style={{ flex: 1, height: `${pct}%`, borderRadius: 3,
+              background: pct === 100 ? ACCENT : 'rgba(56,189,248,.35)' }} />
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: cell(0.025) }}>
+          {AXIS.flatMap((a, i) => {
+            const slots = [
+              <span key={a} style={{ ...detail, flex: 1, textAlign: 'center', fontSize: cell(SCALE.fontLabel) }}>{a}</span>,
+            ];
+            if (i < AXIS.length - 1) slots.push(<span key={`${a}-gap`} style={{ flex: 1 }} />);
+            return slots;
+          })}
+        </div>
+      </div>
+      <div style={{ ...detail, display: 'flex', gap: cell(0.16),
+        borderTop: '1px solid var(--border-hairline)', paddingTop: cell(0.06) }}>
+        <span>Dist <b style={{ color: 'var(--text)' }}>5.2km</b></span>
+        <span>Active <b style={{ color: 'var(--text)' }}>44m</b></span>
+        <span>Floors <b style={{ color: 'var(--text)' }}>8</b></span>
       </div>
     </div>
   );

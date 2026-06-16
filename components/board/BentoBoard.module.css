@@ -3,5 +3,8 @@
   grid-template-columns: repeat(6, 1fr);
   gap: var(--gap);
   width: 100%;
+  /* 6×200px cells + 5×12px gaps ≈ 1260px — caps cellSize at ~200px on large screens */
+  max-width: 1260px;
+  margin: 0 auto;
   padding-top: 8px;
 }

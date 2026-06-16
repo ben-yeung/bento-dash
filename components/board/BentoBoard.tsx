@@ -1,6 +1,6 @@
 ﻿'use client';
-import { useState } from 'react';
-import { LayoutGroup, AnimatePresence } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
 import styles from './BentoBoard.module.css';
 import { Widget } from './Widget';
 import { DropPreview } from './DropPreview';
@@ -18,7 +18,7 @@ import type { GridMetrics } from '@/lib/grid/collision';
 import type { RefObject } from 'react';
 
 interface BentoBoardProps {
-  boardRef: RefObject<HTMLDivElement>;
+  boardRef: RefObject<HTMLDivElement | null>;
   metrics: GridMetrics;
   dragState: DragState;
 }
@@ -133,6 +133,24 @@ export function BentoBoard({
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [resizePreview, setResizePreview] = useState<WidgetLayout[] | null>(null);
 
+  // Safety net: if the resize gesture ends without the ResizeHandle receiving
+  // pointerup/pointercancel (e.g. pointer leaves the window, OS interrupts, or
+  // a React error prevents the event from being processed), this global listener
+  // clears the stuck resizingId so other interactions aren't locked indefinitely.
+  useEffect(() => {
+    if (!resizingId) return;
+    const clear = () => {
+      setResizingId(null);
+      setResizePreview(null);
+    };
+    window.addEventListener('pointerup', clear);
+    window.addEventListener('pointercancel', clear);
+    return () => {
+      window.removeEventListener('pointerup', clear);
+      window.removeEventListener('pointercancel', clear);
+    };
+  }, [resizingId]);
+
   const base =
     dragState.phase === 'dragging'
       ? dragState.previewLayout
@@ -169,59 +187,57 @@ export function BentoBoard({
         '--cell-size': `${metrics.cellSize}px`,
       } as React.CSSProperties}
     >
-      <LayoutGroup>
-        <AnimatePresence>
-          {widgets
-            .filter((w) => !(dragState.phase === 'dragging' && w.id === dragState.activeId))
-            .map((w) => {
-              const def = WIDGET_REGISTRY.find((d) => d.type === w.widgetType);
-              return (
-                <WidgetWithResize
-                  key={w.id}
-                  w={w}
-                  dimmed={filtering && filterMode === 'dim' && !matches(w.category)}
-                  metrics={metrics}
-                  committed={committed}
-                  layoutMode={layoutMode}
-                  isSwapTarget={
-                    dragState.phase === 'dragging' &&
-                    dragState.targetKind === 'swap' &&
-                    w.id === dragState.targetId
-                  }
-                  resizingId={resizingId}
-                  interactionsLocked={interactionsLocked}
-                  manageMode={manageMode}
-                  supportedSizes={def?.supportedSizes}
-                  setResizePreview={setResizePreview}
-                  setResizingId={setResizingId}
-                  resizeWidget={resizeWidget}
-                />
-              );
-            })}
-        </AnimatePresence>
-        {activeWidget &&
-          !interactionsLocked &&
-          dragState.phase === 'dragging' &&
-          dragState.targetKind !== 'swap' && (
-            <DropPreview
-              widget={activeWidget}
-              mode={dragState.targetKind === 'insert' ? 'insert' : 'none'}
-            />
-          )}
-        {palettePreview && (
+      <AnimatePresence>
+        {widgets
+          .filter((w) => !(dragState.phase === 'dragging' && w.id === dragState.activeId))
+          .map((w) => {
+            const def = WIDGET_REGISTRY.find((d) => d.type === w.widgetType);
+            return (
+              <WidgetWithResize
+                key={w.id}
+                w={w}
+                dimmed={filtering && filterMode === 'dim' && !matches(w.category)}
+                metrics={metrics}
+                committed={committed}
+                layoutMode={layoutMode}
+                isSwapTarget={
+                  dragState.phase === 'dragging' &&
+                  dragState.targetKind === 'swap' &&
+                  w.id === dragState.targetId
+                }
+                resizingId={resizingId}
+                interactionsLocked={interactionsLocked}
+                manageMode={manageMode}
+                supportedSizes={def?.supportedSizes}
+                setResizePreview={setResizePreview}
+                setResizingId={setResizingId}
+                resizeWidget={resizeWidget}
+              />
+            );
+          })}
+      </AnimatePresence>
+      {activeWidget &&
+        !interactionsLocked &&
+        dragState.phase === 'dragging' &&
+        dragState.targetKind !== 'swap' && (
           <DropPreview
-            widget={{
-              id: '__pal__',
-              x: palettePreview.x,
-              y: palettePreview.y,
-              w: palettePreview.w,
-              h: palettePreview.h,
-              category: palettePreview.category,
-              order: 0,
-            }}
+            widget={activeWidget}
+            mode={dragState.targetKind === 'insert' ? 'insert' : 'none'}
           />
         )}
-      </LayoutGroup>
+      {palettePreview && (
+        <DropPreview
+          widget={{
+            id: '__pal__',
+            x: palettePreview.x,
+            y: palettePreview.y,
+            w: palettePreview.w,
+            h: palettePreview.h,
+            category: palettePreview.category,
+            order: 0,
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,57 +1,65 @@
+import type React from 'react';
 import type { WidgetContentProps } from '@/components/widgets/WidgetSkeleton';
-import React from 'react';
+import { cell, fcell } from './scale';
+import { Header, StreakBadge, WeekHeatmap } from './_shared';
 
-const ACCENT = '#10b981';
-const HABITS = [
-  { name: 'Morning run',        done: true  },
-  { name: 'Read 30 min',        done: true  },
-  { name: 'Meditate',           done: true  },
-  { name: 'Limited Screentime', done: false },
-  { name: 'Workout',            done: false },
+const AMBER = '#f59e0b';
+const GREEN = '#10b981';
+const INDIGO = '#6366f1';
+const PINK = '#ec4899';
+const PENDING = '#2a3550';
+
+/** Single source of truth for the 3×2 heatmap + adjacent streak badges.
+ *  Each row's number of `true` days MUST equal its `count` (test-enforced). */
+export const HEATMAP_ROWS: { color: string; days: boolean[]; count: number; label: string }[] = [
+  { color: AMBER,  label: 'Morning run', count: 5, days: [true, true, true, false, true, true, false] },   // 5
+  { color: GREEN,  label: 'Read 30 min', count: 6, days: [true, true, false, true, true, true, true] },     // 6
+  { color: INDIGO, label: 'Meditate',    count: 5, days: [true, false, true, true, true, false, true] },    // 5
+  { color: PINK,   label: 'Workout',     count: 4, days: [false, true, true, false, true, true, false] },   // 4
 ];
-const DONE_COUNT = HABITS.filter((h) => h.done).length;
-const WEEK_DAYS = ['M','T','W','T','F','S','S'];
-const WEEK_DONE: boolean[][] = HABITS.map((hab, hi) =>
-  WEEK_DAYS.map((_, di) => (hi + di) % 3 !== 0)
-);
 
-function HabitDot({ size, done }: { size: number; done: boolean }) {
+// 1×1 / 2×1 / 2×2: dot color + streak per habit (mockup: amber/green/indigo done, then pending).
+const HABITS = [
+  { name: 'Morning run', color: AMBER,   streak: 5 },
+  { name: 'Read 30 min', color: GREEN,   streak: 6 },
+  { name: 'Meditate',    color: INDIGO,  streak: 5 },
+  { name: 'Workout',     color: PENDING, streak: 4 },
+  { name: 'Stretch',     color: PENDING, streak: 2 },
+];
+
+const DONE = '3/5';
+
+const root: React.CSSProperties = {
+  position: 'absolute', inset: 0, padding: cell(0.09),
+  display: 'flex', flexDirection: 'column', color: 'var(--text)', overflow: 'hidden',
+};
+
+function Dot({ color, size }: { color: string; size: number }) {
   return (
-    <div style={{
-      width: `${size/10}em`, height: `${size/10}em`, borderRadius: '50%', flexShrink: 0,
-      background: done ? ACCENT : 'transparent',
-      border: done ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      {done && (
-        <svg width={`${(size * 0.55)/10}em`} height={`${(size * 0.55)/10}em`} viewBox="0 0 12 12" fill="none">
-          <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </div>
+    <span style={{ width: cell(size), height: cell(size), borderRadius: '50%',
+      background: color, flexShrink: 0, display: 'inline-block' }} />
   );
 }
 
-export function HabitTracker({ w, h }: WidgetContentProps) {
-  const s: React.CSSProperties = {
-    position: 'absolute', inset: 0, padding: '1.2em',
-    display: 'flex', flexDirection: 'column',
-    color: 'var(--text)', overflow: 'hidden',
-  };
+const asideCount = (
+  <div style={{ fontSize: fcell(0.13), fontWeight: 700, color: GREEN }}>{DONE}</div>
+);
 
+export function HabitTracker({ w, h }: WidgetContentProps) {
   if (w === 1 && h === 1) {
     return (
-      <div style={s}>
+      <div style={root}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Habits</div>
-          <div style={{ fontSize: '1.3em', fontWeight: 700, color: ACCENT }}>{DONE_COUNT}/{HABITS.length}</div>
+          <div style={{ fontSize: fcell(0.075), textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Habits</div>
+          {asideCount}
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5em' }}>
-          <div style={{ display: 'flex', gap: '0.4em' }}>
-            {HABITS.slice(0, 3).map((h) => <HabitDot key={h.name} size={20} done={h.done} />)}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', gap: cell(0.07) }}>
+          <div style={{ display: 'flex', gap: cell(0.07) }}>
+            {HABITS.slice(0, 3).map((hab) => <Dot key={hab.name} color={hab.color} size={0.2} />)}
           </div>
-          <div style={{ display: 'flex', gap: '0.4em' }}>
-            {HABITS.slice(3).map((h) => <HabitDot key={h.name} size={20} done={h.done} />)}
+          <div style={{ display: 'flex', gap: cell(0.07) }}>
+            {HABITS.slice(3, 5).map((hab) => <Dot key={hab.name} color={PENDING} size={0.2} />)}
           </div>
         </div>
       </div>
@@ -60,14 +68,15 @@ export function HabitTracker({ w, h }: WidgetContentProps) {
 
   if (w === 2 && h === 1) {
     return (
-      <div style={{ ...s, flexDirection: 'row', alignItems: 'center', gap: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', marginRight: 'auto' }}>
-          <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
-          <div style={{ fontSize: '1.3em', fontWeight: 600 }}>Habits</div>
-        </div>
-        <div style={{ display: 'flex', gap: '0.6em', alignItems: 'center' }}>
-          <div style={{ fontSize: '1.5em', fontWeight: 700, color: ACCENT, marginRight: '0.8em' }}>{DONE_COUNT}/{HABITS.length}</div>
-          {HABITS.map((h) => <HabitDot key={h.name} size={28} done={h.done} />)}
+      <div style={{ ...root, justifyContent: 'space-between' }}>
+        <Header label="Today's Habits" aside={asideCount} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1 }}>
+          {HABITS.map((hab) => (
+            <div key={hab.name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: cell(0.04) }}>
+              <Dot color={hab.color} size={0.2} />
+              <StreakBadge count={hab.streak} />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -75,27 +84,16 @@ export function HabitTracker({ w, h }: WidgetContentProps) {
 
   if (w === 2 && h === 2) {
     return (
-      <div style={s}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8em' }}>
-          <div>
-            <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
-            <div style={{ fontSize: '1.3em', fontWeight: 600 }}>Habits</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.9em', color: 'var(--muted)', textTransform: 'uppercase' }}>Done</div>
-            <div style={{ fontSize: '1.5em', fontWeight: 700, color: ACCENT }}>{DONE_COUNT}/{HABITS.length}</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6em' }}>
-          {HABITS.map((hab) => (
-            <div key={hab.name} style={{ display: 'flex', alignItems: 'center', gap: '0.8em' }}>
-              <HabitDot size={18} done={hab.done} />
-              <span style={{ flex: 1, fontSize: '1.2em' }}>{hab.name}</span>
-              <div style={{
-                width: '1.6em', height: '1.6em', borderRadius: '50%',
-                background: hab.done ? ACCENT : 'transparent',
-                border: hab.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
-              }} />
+      <div style={{ ...root, gap: cell(0.06) }}>
+        <Header label="Today's Habits" aside={asideCount} />
+        <div style={{ flex: 1, display: 'grid', gridAutoRows: '1fr' }}>
+          {HABITS.slice(0, 4).map((hab) => (
+            <div key={hab.name} style={{ display: 'flex', alignItems: 'center', gap: cell(0.08) }}>
+              <Dot color={hab.color} size={0.1} />
+              <span style={{ flex: 1, fontWeight: 500, fontSize: fcell(0.13),
+                color: hab.color === PENDING ? 'var(--muted)' : 'var(--text)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hab.name}</span>
+              <StreakBadge count={hab.streak} />
             </div>
           ))}
         </div>
@@ -105,42 +103,20 @@ export function HabitTracker({ w, h }: WidgetContentProps) {
 
   // 3×2
   return (
-    <div style={{ ...s, flexDirection: 'row', gap: '1.2em' }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ marginBottom: '0.8em' }}>
-          <div style={{ fontSize: '1em', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s</div>
-          <div style={{ fontSize: '1.3em', fontWeight: 600 }}>Habits</div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6em' }}>
-          {HABITS.map((hab) => (
-            <div key={hab.name} style={{ display: 'flex', alignItems: 'center', gap: '0.8em' }}>
-              <div style={{
-                width: '1.6em', height: '1.6em', borderRadius: '50%',
-                background: hab.done ? ACCENT : 'transparent',
-                border: hab.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
-              }} />
-              <span style={{ flex: 1, fontSize: '1.1em' }}>{hab.name}</span>
+    <div style={{ ...root, gap: cell(0.06) }}>
+      <Header label="Today's Habits" aside={asideCount} />
+      <div style={{ display: 'flex', gap: cell(0.08), flex: 1, alignItems: 'stretch', minHeight: 0 }}>
+        <div style={{ flex: 1, display: 'grid', gridAutoRows: '1fr' }}>
+          {HEATMAP_ROWS.map((row) => (
+            <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: cell(0.08) }}>
+              <Dot color={row.color} size={0.1} />
+              <span style={{ flex: 1, fontWeight: 500, fontSize: fcell(0.13) }}>{row.label}</span>
             </div>
           ))}
         </div>
-      </div>
-      <div style={{ width: '1px', background: 'var(--border-hairline)' }} />
-      <div style={{ width: '8em' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4em' }}>
-          {WEEK_DAYS.map((d, i) => (
-            <div key={i} style={{ fontSize: '0.8em', color: 'var(--muted)', width: '1em', textAlign: 'center' }}>{d}</div>
-          ))}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, justifyContent: 'center' }}>
+          <WeekHeatmap rows={HEATMAP_ROWS.map((r) => ({ color: r.color, days: r.days }))} />
         </div>
-        {HABITS.map((hab, hi) => (
-          <div key={hab.name} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3em' }}>
-            {WEEK_DAYS.map((_, di) => (
-              <div key={di} style={{
-                width: '1em', height: '1em', borderRadius: '0.2em',
-                background: WEEK_DONE[hi][di] ? ACCENT : 'rgba(255,255,255,0.08)',
-              }} />
-            ))}
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -20,14 +20,15 @@ describe('applySwap', () => {
     expect(result.find(x => x.id === 'c')).toMatchObject({ x: 2, y: 0 });
   });
 
-  it('preserves w, h, category, and order fields of both widgets', () => {
+  it('preserves w, h, category of both widgets and swaps their order with their position', () => {
     const layout = [
       { id: 'a', x: 0, y: 0, w: 2, h: 2, category: 'finance' as const, order: 3 },
       { id: 'b', x: 2, y: 0, w: 2, h: 2, category: 'health' as const, order: 7 },
     ];
     const result = applySwap(layout, 'a', 'b');
-    expect(result.find(x => x.id === 'a')).toMatchObject({ w: 2, h: 2, category: 'finance', order: 3 });
-    expect(result.find(x => x.id === 'b')).toMatchObject({ w: 2, h: 2, category: 'health', order: 7 });
+    // order follows position: 'a' moves to where 'b' was, so inherits order 7
+    expect(result.find(x => x.id === 'a')).toMatchObject({ w: 2, h: 2, category: 'finance', order: 7 });
+    expect(result.find(x => x.id === 'b')).toMatchObject({ w: 2, h: 2, category: 'health', order: 3 });
   });
 
   it('returns a new array (does not mutate input)', () => {

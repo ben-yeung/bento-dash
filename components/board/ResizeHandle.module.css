@@ -6,13 +6,9 @@
   height: 16px;
   border-right: 2px solid var(--muted);
   border-bottom: 2px solid var(--muted);
-  border-bottom-right-radius: 5px;
+  border-bottom-right-radius: var(--radius-tile);
   cursor: nwse-resize;
-  opacity: 0.25;
+  opacity: var(--resize-handle-opacity, 0);
   transition: opacity 0.15s ease;
   touch-action: none;
-}
-.handle:hover,
-.handle:active {
-  opacity: 0.95;
 }
