@@ -6,7 +6,7 @@ import { applySwap } from '../swap';
 export function compactVertical(widgets: WidgetLayout[], cols = COLS): WidgetLayout[] {
   const sorted = [...widgets].sort((a, b) => a.y - b.y || a.x - b.x);
   const grid = createGrid();
-  const result: WidgetLayout[] = [];
+  const placed: WidgetLayout[] = [];
   for (const wdg of sorted) {
     const { w, h } = clampSize(wdg.w, wdg.h);
     const x = Math.max(0, Math.min(cols - w, wdg.x));
@@ -14,9 +14,13 @@ export function compactVertical(widgets: WidgetLayout[], cols = COLS): WidgetLay
     while (!fits(grid, x, y, w, h, cols)) y++;
     while (y > 0 && fits(grid, x, y - 1, w, h, cols)) y--;
     occupy(grid, x, y, w, h);
-    result.push({ ...wdg, x, y, w, h });
+    placed.push({ ...wdg, x, y, w, h });
   }
-  return result;
+  // Canonicalize order by visual reading position so autoPack can repack
+  // correctly when the user switches layout modes without gaps/holes.
+  return placed
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .map((wdg, i) => ({ ...wdg, order: i }));
 }
 
 function pushCompactDrag(
@@ -32,7 +36,7 @@ function pushCompactDrag(
   const my = Math.max(0, targetCell.y);
   const grid = createGrid();
   occupy(grid, mx, my, w, h);
-  const result: WidgetLayout[] = [{ ...moving, x: mx, y: my, w, h }];
+  const placed: WidgetLayout[] = [{ ...moving, x: mx, y: my, w, h }];
   const others = widgets
     .filter((o) => o.id !== id)
     .sort((a, b) => a.y - b.y || a.x - b.x);
@@ -42,9 +46,12 @@ function pushCompactDrag(
     let y = 0;
     while (!fits(grid, x, y, oc.w, oc.h, cols)) y++;
     occupy(grid, x, y, oc.w, oc.h);
-    result.push({ ...o, x, y, w: oc.w, h: oc.h });
+    placed.push({ ...o, x, y, w: oc.w, h: oc.h });
   }
-  return result;
+  // Canonicalize order by visual reading position for consistent mode-switching.
+  return placed
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .map((wdg, i) => ({ ...wdg, order: i }));
 }
 
 export const pushCompact: LayoutStrategy = {

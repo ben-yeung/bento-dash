@@ -20,14 +20,30 @@ export function useDragResize({ startW, startH, metrics, supportedSizes, onPrevi
     supportedSizes?.length ? nearestPresetFrom(startW, startH, supportedSizes) : nearestPreset(startW, startH)
   );
 
+  // Always-current refs so pointer handlers call the latest callback version
+  // without being in useCallback dep arrays. This keeps all four returned
+  // handlers stable across renders (no re-creation when onPreview/onCommit
+  // change), which prevents the widget tree from churning during resize.
+  const onPreviewRef = useRef(onPreview);
+  onPreviewRef.current = onPreview;
+  const onIndicatorRef = useRef(onIndicator);
+  onIndicatorRef.current = onIndicator;
+  const onCommitRef = useRef(onCommit);
+  onCommitRef.current = onCommit;
+
+  // Snapshot the committed size at gesture start via ref so onPointerDown
+  // is stable even when startW/startH change (e.g. during resize preview).
+  const startSizeRef = useRef({ w: startW, h: startH });
+  startSizeRef.current = { w: startW, h: startH };
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
       e.preventDefault();
       (e.target as Element).setPointerCapture(e.pointerId);
-      origin.current = { px: e.clientX, py: e.clientY, w: startW, h: startH };
+      origin.current = { px: e.clientX, py: e.clientY, ...startSizeRef.current };
     },
-    [startW, startH],
+    [],
   );
 
   const onPointerMove = useCallback(
@@ -39,17 +55,20 @@ export function useDragResize({ startW, startH, metrics, supportedSizes, onPrevi
       const raw = clampSize(origin.current.w + dw, origin.current.h + dh);
       if (raw.w !== latestRaw.current.w || raw.h !== latestRaw.current.h) {
         latestRaw.current = raw;
-        onPreview(raw.w, raw.h);
+        onPreviewRef.current(raw.w, raw.h);
       }
       const snap = supportedSizes?.length
         ? nearestPresetFrom(raw.w, raw.h, supportedSizes)
         : nearestPreset(raw.w, raw.h);
       if (snap.w !== latestSnap.current.w || snap.h !== latestSnap.current.h) {
         latestSnap.current = snap;
-        onIndicator(snap);
+        onIndicatorRef.current(snap);
       }
     },
-    [metrics, onPreview, onIndicator, supportedSizes],
+    // Use individual metric fields rather than the object to avoid re-creating
+    // this handler when useGridMetrics produces a new object with the same values.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [metrics.cellSize, metrics.gap, supportedSizes],
   );
 
   const onPointerUp = useCallback(
@@ -57,14 +76,15 @@ export function useDragResize({ startW, startH, metrics, supportedSizes, onPrevi
       if (!origin.current) return;
       (e.target as Element).releasePointerCapture(e.pointerId);
       origin.current = null;
-      onCommit(latestSnap.current.w, latestSnap.current.h);
+      onCommitRef.current(latestSnap.current.w, latestSnap.current.h);
     },
-    [onCommit],
+    [],
   );
 
-  // pointercancel fires when the browser forcibly ends the gesture (scroll takeover,
-  // touch with too many fingers, focus loss, etc.). Without this, origin.current stays
-  // set and resizingId stays non-null, locking all widget interactions indefinitely.
+  // pointercancel fires when the browser forcibly ends the gesture (scroll
+  // takeover, too many fingers, focus loss). Clears origin so the next
+  // pointerdown starts clean. BentoBoard's global safety-net effect handles
+  // clearing resizingId in cases where this event is never delivered.
   const onPointerCancel = useCallback(
     (_e: React.PointerEvent) => {
       origin.current = null;

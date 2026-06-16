@@ -105,7 +105,7 @@ export function AppShell() {
 
   const paletteInfo = paletteActiveId ? parsePaletteId(paletteActiveId) : null;
   const activeWidget: WidgetLayout | null = paletteInfo
-    ? { id: paletteActiveId!, x: 0, y: 0, w: paletteInfo.w, h: paletteInfo.h, category: paletteInfo.cat, order: 0 }
+    ? { id: paletteActiveId!, x: 0, y: 0, w: paletteInfo.w, h: paletteInfo.h, category: paletteInfo.cat, widgetType: paletteInfo.widgetType, order: 0 }
     : dragState.phase === 'dragging'
       ? dragState.previewLayout.find((w) => w.id === dragState.activeId) ?? null
       : null;

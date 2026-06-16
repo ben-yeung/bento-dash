@@ -1,4 +1,5 @@
 'use client';
+import type { CSSProperties } from 'react';
 import styles from './Widget.module.css';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import type { WidgetLayout } from '@/lib/grid/types';
@@ -7,7 +8,7 @@ import { cellSpanToPixels } from '@/lib/grid/collision';
 
 export function DragOverlayWidget({ widget, metrics }: { widget: WidgetLayout; metrics: GridMetrics }) {
   const { width, height } = cellSpanToPixels(widget.w, widget.h, metrics);
-  const def = WIDGET_REGISTRY.find((d) => d.category === widget.category);
+  const def = WIDGET_REGISTRY.find((d) => d.type === widget.widgetType);
   const ContentComponent = def?.ContentComponent;
   return (
     <div
@@ -18,10 +19,13 @@ export function DragOverlayWidget({ widget, metrics }: { widget: WidgetLayout; m
         cursor: 'grabbing',
         transform: 'scale(1.03)',
         boxShadow: '0 24px 48px rgba(0,0,0,0.35)',
-      }}
+        '--cell-size': `${metrics.cellSize}px`,
+      } as CSSProperties}
     >
       {ContentComponent && (
-        <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
+        <div style={{ position: 'absolute', inset: 0, fontSize: 'clamp(8px, calc(var(--cell-size, 100px) / 10), 14px)' }}>
+          <ContentComponent category={widget.category} w={widget.w} h={widget.h} />
+        </div>
       )}
     </div>
   );

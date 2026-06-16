@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Palette } from 'lucide-react';
+import { Palette, Camera } from 'lucide-react';
 import styles from './SettingsModal.module.css';
 import { useSettings, ACCENT_PRESETS } from '@/lib/state/settingsStore';
 import { useProfile } from '@/lib/state/profileStore';
@@ -94,7 +94,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 }}
               />
             )}
-            <div className={styles.avatarOverlay}>📷</div>
+            <div className={styles.avatarOverlay}><Camera size={20} /></div>
           </button>
           <div className={styles.profileInfo}>
             {editingName ? (
