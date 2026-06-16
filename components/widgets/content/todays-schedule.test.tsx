@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { TodaysSchedule } from './todays-schedule';
 
-const SIZES = [[1, 2], [2, 2], [2, 3]] as const;
+const SIZES = [[1, 2], [2, 2], [2, 3], [3, 2]] as const;
 
 describe('TodaysSchedule', () => {
   it('renders every supported size without throwing', () => {

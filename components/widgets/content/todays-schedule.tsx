@@ -48,7 +48,7 @@ export function TodaysSchedule({ w, h }: WidgetContentProps) {
     );
   }
 
-  // 2×3
+  // 2×3 and 3×2 (default for the larger sizes): full timeline with durations
   return (
     <div style={{ ...root, ...g3 }}>
       <Header label="Schedule"
