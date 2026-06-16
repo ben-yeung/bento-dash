@@ -43,7 +43,7 @@ export function AppShell() {
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
-  const addWidget = useBoard((s) => s.addWidget);
+  const placeWidgetFromPreview = useBoard((s) => s.placeWidgetFromPreview);
   const swapWidgets = useBoard((s) => s.swapWidgets);
   const layoutMode = useSettings((s) => s.layoutMode);
 
@@ -145,10 +145,13 @@ export function AppShell() {
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
       const board = boardRef.current;
-      const rect = e.active.rect.current.translated;
-      if (!parsed || !board || !rect) return;
-      const b = board.getBoundingClientRect();
-      const cell = pointToCell(rect.left - b.left, rect.top - b.top, metrics);
+      if (!parsed || !board || !(e.activatorEvent instanceof PointerEvent)) return;
+      const boardRect = board.getBoundingClientRect();
+      // Anchor the landing cell on the pointer (like board-tile drags), not the dragged
+      // card's rect top-left, so the drop tracks the cursor.
+      const clientX = e.activatorEvent.clientX + e.delta.x;
+      const clientY = e.activatorEvent.clientY + e.delta.y;
+      const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
       const order = committed.reduce((max, x) => Math.max(max, x.order), -1) + 1;
       const temp: WidgetLayout = {
         id,
@@ -160,7 +163,10 @@ export function AppShell() {
         widgetType: parsed.widgetType,
         order,
       };
-      const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'add', widget: temp });
+      // Inject the new widget then position it through the SAME insert pipeline board
+      // tiles use, so existing widgets reflow around it and it lands at the cursor cell —
+      // instead of `kind:'add'`, which appends to the end of the board.
+      const previewLayout = getStrategy(layoutMode).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
       setDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
       return;
     }
@@ -229,13 +235,11 @@ export function AppShell() {
         ds.phase === 'dragging'
           ? ds.previewLayout.find((w) => w.id === id)
           : null;
-      if (parsed && inside && placed) {
-        // TODO(palette-drop-autopack): under the autoPack strategy, addWidget's
-        // add-preview appends to end-of-board and ignores this {x,y} (and the
-        // drag's landing ghost); only pushCompact honors the drop cell. To make
-        // "drop lands where the ghost was" hold under autoPack, teach autoPack's
-        // `add` case to honor widget.x/y. See docs/superpowers/plans/2026-06-15-fab-drag-to-place.md (Task 3).
-        addWidget(parsed.cat, parsed.widgetType, parsed.w, parsed.h, { x: placed.x, y: placed.y });
+      if (parsed && inside && placed && ds.phase === 'dragging') {
+        // Commit exactly what the drop ghost showed: the reflowed layout with the
+        // dragged-in widget promoted from its draft palette id to a real id. The
+        // widget lands on the same cell as the preview, in either layout mode.
+        placeWidgetFromPreview(ds.previewLayout, id);
         setFabOpen(false);
       }
       setDrag({ phase: 'idle' });
