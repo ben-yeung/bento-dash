@@ -186,6 +186,14 @@ export function BentoBoard({
     >
       <AnimatePresence>
         {widgets
+          // The active widget is removed from the list while dragging — the DragOverlay
+          // renders the moving copy, and dnd-kit anchors the overlay to the rect it
+          // cached at drag start, so unmounting the source keeps the overlay aligned to
+          // the cursor. (Keeping it mounted but absolutely-positioned makes dnd-kit
+          // re-measure the displaced node and offsets the overlay.)
+          // NOTE: tiles intentionally have no `exit` animation. A rapidly interrupted
+          // exit left the removed node stuck mounted at opacity:0 while still holding its
+          // grid cell — the "disappears but still takes space, pops back on next drag" bug.
           .filter((w) => !(dragState.phase === 'dragging' && w.id === dragState.activeId))
           .map((w) => {
             const def = WIDGET_REGISTRY.find((d) => d.type === w.widgetType);
