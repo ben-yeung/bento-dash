@@ -14,6 +14,7 @@ describe('conditionEmoji', () => {
   it('returns 🌨️ for Light Flurries', () => expect(conditionEmoji('Light Flurries')).toBe('🌨️'));
   it('returns ⛈️ for Thunderstorm', () => expect(conditionEmoji('Thunderstorm')).toBe('⛈️'));
   it('returns ⛈️ for Storm', () => expect(conditionEmoji('Storm')).toBe('⛈️'));
+  it('returns ⛈️ for Thundery Showers (thunder beats shower)', () => expect(conditionEmoji('Thundery Showers')).toBe('⛈️'));
   it('returns 🌫️ for Fog', () => expect(conditionEmoji('Fog')).toBe('🌫️'));
   it('returns 🌫️ for Mist', () => expect(conditionEmoji('Mist')).toBe('🌫️'));
   it('returns 🌫️ for Haze', () => expect(conditionEmoji('Haze')).toBe('🌫️'));
