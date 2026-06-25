@@ -179,6 +179,7 @@ export function BentoBoard({
     <div
       ref={boardRef}
       className={styles.board}
+      data-manage-mode={manageMode}
       style={{
         gridAutoRows: `${metrics.cellSize}px`,
         '--cell-size': `${metrics.cellSize}px`,

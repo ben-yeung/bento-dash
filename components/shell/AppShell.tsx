@@ -21,6 +21,7 @@ import { DragOverlayWidget } from '@/components/board/DragOverlayWidget';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
+import { useUi } from '@/lib/state/uiStore';
 import { getStrategy } from '@/lib/grid/engine';
 import { pointToCell } from '@/lib/grid/collision';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
@@ -48,6 +49,8 @@ export function AppShell() {
   const layoutMode = useSettings((s) => s.layoutMode);
 
   const setFabOpen = useDragStore((s) => s.setFabOpen);
+  const manageMode = useUi((s) => s.manageMode);
+  const setManageMode = useUi((s) => s.setManageMode);
 
   const [dragState, setDragState] = useState<DragState>({ phase: 'idle' });
   // Mirror dragState in a ref updated synchronously inside the handlers. dnd-kit can fire
@@ -275,6 +278,13 @@ export function AppShell() {
       onDragCancel={handleDragCancel}
     >
       <div className={styles.shell}>
+        {manageMode && (
+          <div
+            className={styles.manageOverlay}
+            onClick={() => setManageMode(false)}
+            aria-hidden
+          />
+        )}
         <ThemeController />
         <LeftBar />
         <div className={styles.main}>
@@ -286,7 +296,7 @@ export function AppShell() {
               dragState={dragState}
             />
           </div>
-          <Fab />
+          <Fab cellSize={metrics.cellSize} />
         </div>
       </div>
       <DragOverlay dropAnimation={null}>

@@ -31,7 +31,9 @@ export function UpcomingEvents({ w, h }: WidgetContentProps) {
     return (
       <div style={{ ...root, justifyContent: 'center' }}>
         <div style={{ fontSize: cell(SCALE.fontLabel), textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--muted)' }}>Next</div>
-        <div style={{ fontSize: cell(SCALE.fontValue), fontWeight: 700, margin: `${cell(0.02)} 0 ${cell(0.04)}` }}>{ev.time}</div>
+        <div style={{ fontSize: cell(SCALE.fontValue), fontWeight: 700, margin: `${cell(0.02)} 0 ${cell(0.04)}` }}>
+          {ev.time}<span style={{ fontSize: cell(SCALE.fontTitle), fontWeight: 400, color: 'var(--muted)', marginLeft: cell(0.03) }}>{parseInt(ev.time) >= 12 ? 'pm' : 'am'}</span>
+        </div>
         <div style={{ fontSize: cell(SCALE.fontTitle) }}>{ev.title}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: cell(0.06), marginTop: cell(0.06) }}>
           <span style={{ width: cell(0.06), height: cell(0.06), borderRadius: '50%', background: ev.color }} />
@@ -44,7 +46,7 @@ export function UpcomingEvents({ w, h }: WidgetContentProps) {
   if (w === 2 && h === 1) {
     return (
       <div style={{ ...root, justifyContent: 'center' }}>
-        <ChipBody count={2} />
+        <ChipBody count={2} duration />
       </div>
     );
   }

@@ -7,7 +7,7 @@ import { useDragStore } from '@/lib/state/dragStore';
 import { useBoard } from '@/lib/state/boardStore';
 
 vi.mock('./WidgetCarousel', () => ({
-  WidgetCarousel: ({ onClose }: { onClose: () => void }) => (
+  WidgetCarousel: ({ onClose }: { cellSize: number; onClose: () => void }) => (
     <div data-testid="carousel">
       <button onClick={onClose}>close-carousel</button>
     </div>
@@ -32,28 +32,28 @@ describe('Fab', () => {
   });
 
   it('renders the + button when closed', () => {
-    render(<Wrapper><Fab /></Wrapper>);
-    expect(screen.getByRole('button', { name: /open widget carousel/i })).toBeDefined();
+    render(<Wrapper><Fab cellSize={64} /></Wrapper>);
+    expect(screen.getByRole('button', { name: /open widget menu/i })).toBeDefined();
     expect(screen.queryByTestId('carousel')).toBeNull();
   });
 
   it('opens the carousel when the FAB is clicked', async () => {
-    render(<Wrapper><Fab /></Wrapper>);
-    await userEvent.click(screen.getByRole('button', { name: /open widget carousel/i }));
+    render(<Wrapper><Fab cellSize={64} /></Wrapper>);
+    await userEvent.click(screen.getByRole('button', { name: /open widget menu/i }));
     expect(useDragStore.getState().fabOpen).toBe(true);
     expect(screen.getByTestId('carousel')).toBeDefined();
   });
 
   it('closes the carousel when the close button inside it is clicked', async () => {
     useDragStore.setState({ fabOpen: true });
-    render(<Wrapper><Fab /></Wrapper>);
+    render(<Wrapper><Fab cellSize={64} /></Wrapper>);
     await userEvent.click(screen.getByRole('button', { name: 'close-carousel' }));
     expect(useDragStore.getState().fabOpen).toBe(false);
   });
 
   it('closes when the backdrop is clicked', async () => {
     useDragStore.setState({ fabOpen: true });
-    render(<Wrapper><Fab /></Wrapper>);
+    render(<Wrapper><Fab cellSize={64} /></Wrapper>);
     await userEvent.click(screen.getByTestId('fab-backdrop'));
     expect(useDragStore.getState().fabOpen).toBe(false);
   });

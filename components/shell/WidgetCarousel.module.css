@@ -1,42 +1,18 @@
 .panel {
-  position: relative;
-  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: min(580px, calc(100vw - 120px));
+  padding: 16px 0 20px;
+  width: 100%;
+  min-width: 0;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.closeBtn {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--muted);
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.closeBtn:hover {
-  color: var(--text);
-  background: var(--surface-2);
+  flex-shrink: 0;
+  padding: 0 20px;
 }
 
 .filters {
@@ -45,6 +21,7 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 2px;
+  flex: 1;
 }
 
 .filters::-webkit-scrollbar {
@@ -52,6 +29,9 @@
 }
 
 .filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 12px;
   border-radius: 20px;
   border: 1px solid var(--border-hairline);
@@ -74,14 +54,85 @@
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.cards {
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 4px 2px 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
-.cards::-webkit-scrollbar {
+.closeBtn:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.tileRow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px 20px;
+  min-width: 0;
+}
+
+.tileRow::-webkit-scrollbar {
+  display: none;
+}
+
+/* Size-picker state */
+.pickerHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 0 20px;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.backBtn:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.pickerTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sizeRow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-items: flex-end;
+  padding: 4px 20px;
+  min-width: 0;
+}
+
+.sizeRow::-webkit-scrollbar {
   display: none;
 }
