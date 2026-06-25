@@ -25,6 +25,7 @@
   overflow-y: hidden;
   height: 100%;
   padding-left: 28px;
+  padding-right: 28px;
   scrollbar-width: none;
 }
 .scrollHorizontal::-webkit-scrollbar {

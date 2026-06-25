@@ -85,7 +85,7 @@ export function AppShell() {
     });
   }, []);
 
-  // Sync computed row count into gridState so vertical-mode helpers stay accurate.
+  // Sync row count into gridState and reflow when horizontal mode computes a new row count.
   useEffect(() => {
     if (typeof metrics.rows !== 'number') return;
     setRowCount(metrics.rows);
@@ -332,11 +332,11 @@ export function AppShell() {
         <ThemeController />
         <LeftBar />
         <div className={styles.main}>
+          <Banner profileSlot={<ProfileButton />} />
           <div
             ref={scrollRef}
             className={layoutOrientation === 'horizontal' ? styles.scrollHorizontal : styles.scroll}
           >
-            <Banner profileSlot={<ProfileButton />} />
             <BentoBoard
               boardRef={boardRef}
               metrics={metrics}
