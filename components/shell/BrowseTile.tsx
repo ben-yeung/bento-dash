@@ -43,9 +43,11 @@ export function BrowseTile({ definition, onSelect, cellSize }: BrowseTileProps) 
           h={1}
           ContentComponent={definition.ContentComponent}
         />
-        <div className={styles.accentBar} />
       </button>
-      <span className={styles.label}>{definition.label}</span>
+      <div className={styles.labelRow}>
+        <span className={styles.dot} />
+        <span className={styles.label}>{definition.label}</span>
+      </div>
     </div>
   );
 }

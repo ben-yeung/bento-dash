@@ -27,13 +27,18 @@
   cursor: grabbing;
 }
 
-.accentBar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--w-accent, var(--accent));
+  flex-shrink: 0;
 }
 
 .label {
@@ -41,5 +46,4 @@
   color: var(--muted);
   white-space: nowrap;
   font-weight: 500;
-  text-align: center;
 }
