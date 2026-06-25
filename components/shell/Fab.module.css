@@ -8,7 +8,7 @@
   border: 1px solid var(--border-hairline);
   border-radius: 22px;
   z-index: 100;
-  overflow: hidden;
+  overflow: clip;
 }
 
 /* FAB button — self-positioned bottom-right */
