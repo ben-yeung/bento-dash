@@ -19,6 +19,17 @@
 .scroll::-webkit-scrollbar {
   display: none;
 }
+.scrollHorizontal {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 100%;
+  padding-left: 28px;
+  scrollbar-width: none;
+}
+.scrollHorizontal::-webkit-scrollbar {
+  display: none;
+}
 .manageOverlay {
   position: fixed;
   inset: 0;
