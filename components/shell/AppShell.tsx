@@ -46,7 +46,9 @@ const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 4 } } as cons
 
 export function AppShell() {
   const boardRef = useRef<HTMLDivElement>(null);
-  const metrics = useGridMetrics(boardRef);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const layoutOrientation = useSettings((s) => s.layoutOrientation);
+  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation);
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
