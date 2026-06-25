@@ -47,7 +47,7 @@ export function Fab({ cellSize }: { cellSize: number }) {
             layoutId="fab-morph"
             layout
             className={styles.panel}
-            animate={{ borderRadius: '22px 22px 0 0' }}
+            animate={{ borderRadius: '22px' }}
             transition={SPRING_OPEN}
           >
             <WidgetCarousel cellSize={cellSize} onClose={() => setFabOpen(false)} />
