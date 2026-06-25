@@ -14,12 +14,15 @@ const LIBS = [
 export function CreditsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [closing, setClosing] = useState(false);
+  const [entering, setEntering] = useState(false);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
+      setEntering(true);
+      setTimeout(() => setEntering(false), 160);
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -40,7 +43,7 @@ export function CreditsModal({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <dialog
       ref={ref}
-      className={`${styles.dialog}${closing ? ` ${styles.closing}` : ''}`}
+      className={`${styles.dialog}${entering ? ` ${styles.open}` : ''}${closing ? ` ${styles.closing}` : ''}`}
       onCancel={(e) => { e.preventDefault(); handleClose(); }}
       onClick={handleBackdropClick}
       aria-label="Credits"

@@ -1,7 +1,7 @@
 .dialog {
   position: fixed;
   bottom: 24px;
-  left: 84px;
+  left: 84px; /* sidebar width + gap */
   margin: 0;
   padding: 0;
   border: 1px solid var(--border-hairline);
@@ -11,6 +11,9 @@
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
   color: var(--text);
   min-width: 200px;
+}
+
+.open {
   animation: dialogIn 160ms ease-out forwards;
 }
 

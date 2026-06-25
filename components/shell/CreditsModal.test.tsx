@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { CreditsModal } from './CreditsModal';
 
 // jsdom does not implement showModal/close on HTMLDialogElement
@@ -57,5 +57,31 @@ describe('CreditsModal', () => {
     const link = screen.getByRole('link', { name: /github\.com\/ben-yeung\/bento-dash/i });
     expect(link.getAttribute('href')).toBe('https://github.com/ben-yeung/bento-dash');
     expect(link.getAttribute('target')).toBe('_blank');
+  });
+
+  it('calls onClose when backdrop is clicked', async () => {
+    const onClose = vi.fn();
+    const { container } = render(<CreditsModal open onClose={onClose} />);
+    const dialog = container.querySelector('dialog')!;
+    fireEvent.click(dialog);
+    await act(async () => { await new Promise(r => setTimeout(r, 150)); });
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('calls onClose when Escape key is pressed (cancel event)', async () => {
+    const onClose = vi.fn();
+    const { container } = render(<CreditsModal open onClose={onClose} />);
+    const dialog = container.querySelector('dialog')!;
+    fireEvent(dialog, new Event('cancel', { bubbles: false, cancelable: true }));
+    await act(async () => { await new Promise(r => setTimeout(r, 150)); });
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('calls dialog.close() when open prop becomes false', () => {
+    const closeMock = vi.fn();
+    HTMLDialogElement.prototype.close = closeMock;
+    const { rerender } = render(<CreditsModal open onClose={() => {}} />);
+    rerender(<CreditsModal open={false} onClose={() => {}} />);
+    expect(closeMock).toHaveBeenCalled();
   });
 });

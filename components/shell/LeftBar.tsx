@@ -50,6 +50,7 @@ export function LeftBar() {
         );
       })}
       <button
+        type="button"
         className={styles.infoButton}
         onClick={() => setCreditsOpen(true)}
         aria-label="About"
