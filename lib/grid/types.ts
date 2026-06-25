@@ -2,6 +2,8 @@ export const COLS = 6;
 export const MAX_H = 4;
 export const GRID_GAP = 12; // px, must match --gap
 
+export type LayoutOrientation = 'horizontal' | 'vertical';
+
 export type Category = 'finance' | 'lifestyle' | 'health' | 'calendar';
 
 export interface WidgetLayout {
