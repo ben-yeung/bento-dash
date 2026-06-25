@@ -18,7 +18,7 @@ export function BrowseTile({ definition, onSelect, cellSize }: BrowseTileProps) 
   const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId });
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} style={{ '--w-accent': definition.accentColor } as CSSProperties}>
       <button
         ref={setNodeRef}
         type="button"
@@ -28,7 +28,6 @@ export function BrowseTile({ definition, onSelect, cellSize }: BrowseTileProps) 
             width: `${cellSize}px`,
             height: `${cellSize}px`,
             '--cell-size': `${cellSize}px`,
-            '--w-accent': definition.accentColor,
           } as CSSProperties
         }
         data-dragging={isDragging}

@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 20px 20px;
-  /* Width is 100% — panel fills the parent .panel from Fab.module.css */
+  padding: 16px 0 20px;
+  width: 100%;
+  min-width: 0;
 }
 
 .header {
@@ -11,6 +12,7 @@
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  padding: 0 20px;
 }
 
 .filters {
@@ -27,6 +29,9 @@
 }
 
 .filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 12px;
   border-radius: 20px;
   border: 1px solid var(--border-hairline);
@@ -75,9 +80,8 @@
   gap: 12px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 2px 0 4px;
-  /* padding-inline leaves room so first/last tiles don't clip against panel edge */
-  padding-inline: 2px;
+  padding: 4px 20px;
+  min-width: 0;
 }
 
 .tileRow::-webkit-scrollbar {
@@ -90,6 +94,7 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  padding: 0 20px;
 }
 
 .backBtn {
@@ -124,8 +129,8 @@
   overflow-x: auto;
   scrollbar-width: none;
   align-items: flex-end;
-  padding: 2px 0 4px;
-  padding-inline: 2px;
+  padding: 4px 20px;
+  min-width: 0;
 }
 
 .sizeRow::-webkit-scrollbar {

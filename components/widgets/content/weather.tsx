@@ -4,7 +4,14 @@ import { Sun, CloudSun, Cloud, CloudRain } from 'lucide-react';
 import { cell, fcell, SCALE } from './scale';
 import { Header } from './_shared';
 
-const ACCENT = '#38bdf8';
+type Cond = 'sun' | 'partly' | 'cloud' | 'rain';
+
+const COND_COLOR: Record<Cond, string> = {
+  sun:    '#f59e0b',
+  partly: '#f59e0b',
+  cloud:  '#94a3b8',
+  rain:   '#38bdf8',
+};
 
 const STATS = {
   city: 'San Francisco',
@@ -17,8 +24,6 @@ const STATS = {
   uv: 5,
 };
 
-type Cond = 'sun' | 'partly' | 'cloud' | 'rain';
-
 const FORECAST: { label: string; cond: Cond; hl: string }[] = [
   { label: 'Thu', cond: 'sun', hl: '79°/63°' },
   { label: 'Fri', cond: 'partly', hl: '74°/60°' },
@@ -27,8 +32,9 @@ const FORECAST: { label: string; cond: Cond; hl: string }[] = [
   { label: 'Mon', cond: 'sun', hl: '71°/59°' },
 ];
 
-function CondIcon({ cond, size, color = ACCENT }: { cond: Cond; size: number; color?: string }) {
-  const style: React.CSSProperties = { width: cell(size), height: cell(size), color };
+function CondIcon({ cond, size, color }: { cond: Cond; size: number; color?: string }) {
+  const resolvedColor = color ?? COND_COLOR[cond];
+  const style: React.CSSProperties = { width: cell(size), height: cell(size), color: resolvedColor };
   if (cond === 'partly') return <CloudSun style={style} />;
   if (cond === 'cloud') return <Cloud style={style} />;
   if (cond === 'rain') return <CloudRain style={style} />;

@@ -28,8 +28,9 @@ const CATEGORY_FILTERS: FilterEntry[] = [
 ];
 
 // Vertical chrome outside the tile area (px) — padding + header row + tile label
-const CHROME_BROWSE = 52 + 32 + 24;
-const CHROME_PICKER = 52 + 36 + 24;
+// tileRow padding is 4px top + 4px bottom = 8px (was 6px); bump by 2
+const CHROME_BROWSE = 54 + 32 + 24;
+const CHROME_PICKER = 54 + 36 + 24;
 
 function pickerHeight(def: WidgetDefinition, cellSize: number): number {
   const maxH = Math.max(...def.supportedSizes.map((s) => s.h));
@@ -57,6 +58,14 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
     onClose();
   }
 
+  // Vertical mouse-wheel over a horizontal-only scroll row produces deltaY but the
+  // browser won't scroll it because there's no overflow-y. Redirect to scrollLeft.
+  function handleRowWheel(e: React.WheelEvent<HTMLDivElement>) {
+    if (e.deltaX === 0 && e.deltaY !== 0) {
+      e.currentTarget.scrollLeft += e.deltaY;
+    }
+  }
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       {selectedWidget === null ? (
@@ -81,7 +90,7 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
                   aria-label={`Filter: ${f.label}`}
                 >
                   <f.Icon size={14} />
-                  <span style={{ marginLeft: 4 }}>{f.label}</span>
+                  <span>{f.label}</span>
                 </button>
               ))}
             </div>
@@ -90,7 +99,7 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
             </button>
           </div>
 
-          <div className={styles.tileRow}>
+          <div className={styles.tileRow} onWheel={handleRowWheel}>
             {visibleDefs.map((def) => (
               <BrowseTile
                 key={def.type}
@@ -123,7 +132,7 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
             <span className={styles.pickerTitle}>{selectedWidget.label}</span>
           </div>
 
-          <div className={styles.sizeRow}>
+          <div className={styles.sizeRow} onWheel={handleRowWheel}>
             {selectedWidget.supportedSizes.map((size) => (
               <SizePickerTile
                 key={size.name}

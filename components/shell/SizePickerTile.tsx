@@ -22,7 +22,7 @@ export function SizePickerTile({ definition, size, onAdd, cellSize, gap }: SizeP
   const tileH = size.h * cellSize + (size.h - 1) * gap;
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} style={{ '--w-accent': definition.accentColor } as CSSProperties}>
       <button
         ref={setNodeRef}
         type="button"
@@ -32,7 +32,6 @@ export function SizePickerTile({ definition, size, onAdd, cellSize, gap }: SizeP
             width: `${tileW}px`,
             height: `${tileH}px`,
             '--cell-size': `${cellSize}px`,
-            '--w-accent': definition.accentColor,
           } as CSSProperties
         }
         data-dragging={isDragging}

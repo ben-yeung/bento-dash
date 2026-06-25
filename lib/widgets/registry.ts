@@ -97,7 +97,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     category: 'calendar',
     accentColor: '#3b82f6',
     icon: Clock,
-    supportedSizes: [p('1×2'), p('2×2'), p('2×3'), p('3×2')],
+    supportedSizes: [p('2×1'), p('1×2'), p('2×2'), p('2×3'), p('3×2')],
     ContentComponent: TodaysSchedule,
   },
   // Lifestyle
