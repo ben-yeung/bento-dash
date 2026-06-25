@@ -5,7 +5,7 @@ import { useSettings } from './settingsStore';
 
 describe('boardStore', () => {
   beforeEach(() => {
-    useSettings.setState({ layoutMode: 'autoPack' });
+    useSettings.setState({ layoutMode: 'autoPack', layoutOrientation: 'vertical' });
     useBoard.setState({ widgets: [] });
   });
 
@@ -74,7 +74,7 @@ describe('boardStore', () => {
 
   describe('resetBoard', () => {
     beforeEach(() => {
-      useSettings.setState({ layoutMode: 'autoPack' } as any);
+      useSettings.setState({ layoutMode: 'autoPack', layoutOrientation: 'vertical' } as any);
       useBoard.setState({ widgets: seedWidgets() });
     });
 
