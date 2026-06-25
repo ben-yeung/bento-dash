@@ -5,7 +5,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { GRID_GAP } from '@/lib/grid/types';
 import styles from './WidgetCarousel.module.css';
 import { BrowseTile } from './BrowseTile';
 import { WIDGET_REGISTRY, type WidgetDefinition } from '@/lib/widgets/registry';
