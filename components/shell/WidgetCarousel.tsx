@@ -5,9 +5,12 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { GRID_GAP } from '@/lib/grid/types';
 import styles from './WidgetCarousel.module.css';
 import { BrowseTile } from './BrowseTile';
+import { SizePickerTile } from './SizePickerTile';
 import { WIDGET_REGISTRY, type WidgetDefinition } from '@/lib/widgets/registry';
+import { useBoard } from '@/lib/state/boardStore';
 import type { Category } from '@/lib/grid/types';
 
 interface FilterEntry {
@@ -24,9 +27,14 @@ const CATEGORY_FILTERS: FilterEntry[] = [
   { label: 'Lifestyle', value: 'lifestyle', Icon: Sparkles     },
 ];
 
-// Vertical space taken up by header + label row + top/bottom padding (px)
-const CHROME_BROWSE      = 52 + 32 + 24; // padding + filter row + tile label
-const CHROME_PICKER      = 52 + 36 + 24; // padding + picker header + tile label
+// Vertical chrome outside the tile area (px) — padding + header row + tile label
+const CHROME_BROWSE = 52 + 32 + 24;
+const CHROME_PICKER = 52 + 36 + 24;
+
+function pickerHeight(def: WidgetDefinition, cellSize: number): number {
+  const maxH = Math.max(...def.supportedSizes.map((s) => s.h));
+  return maxH * cellSize + (maxH - 1) * GRID_GAP + CHROME_PICKER;
+}
 
 interface WidgetCarouselProps {
   cellSize: number;
@@ -34,6 +42,7 @@ interface WidgetCarouselProps {
 }
 
 export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
+  const addWidget = useBoard((s) => s.addWidget);
   const [activeFilter, setActiveFilter]     = useState<Category | null>(null);
   const [selectedWidget, setSelectedWidget] = useState<WidgetDefinition | null>(null);
 
@@ -41,7 +50,12 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
     ? WIDGET_REGISTRY.filter((d) => d.category === activeFilter)
     : WIDGET_REGISTRY;
 
-  const browseHeight = cellSize + CHROME_BROWSE;
+  const browseH = cellSize + CHROME_BROWSE;
+
+  function handleAdd(category: Category, widgetType: string, w: number, h: number) {
+    addWidget(category, widgetType, w, h);
+    onClose();
+  }
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -49,7 +63,7 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
         <motion.div
           key="browse"
           className={styles.panel}
-          style={{ height: browseHeight }}
+          style={{ height: browseH }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -71,11 +85,7 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
                 </button>
               ))}
             </div>
-            <button
-              className={styles.closeBtn}
-              onClick={onClose}
-              aria-label="Close"
-            >
+            <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
               ×
             </button>
           </div>
@@ -92,11 +102,10 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
           </div>
         </motion.div>
       ) : (
-        /* Size-picker state — wired in Task 5 */
         <motion.div
           key="picker"
           className={styles.panel}
-          style={{ height: browseHeight }}
+          style={{ height: pickerHeight(selectedWidget, cellSize) }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -113,7 +122,19 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
             </button>
             <span className={styles.pickerTitle}>{selectedWidget.label}</span>
           </div>
-          {/* TODO(fab-size-picker): size tile row — wired in Task 5 */}
+
+          <div className={styles.sizeRow}>
+            {selectedWidget.supportedSizes.map((size) => (
+              <SizePickerTile
+                key={size.name}
+                definition={selectedWidget}
+                size={size}
+                cellSize={cellSize}
+                gap={GRID_GAP}
+                onAdd={(w, h) => handleAdd(selectedWidget.category, selectedWidget.type, w, h)}
+              />
+            ))}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

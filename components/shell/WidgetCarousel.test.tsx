@@ -61,4 +61,15 @@ describe('WidgetCarousel', () => {
     // Browse tiles are back
     expect(screen.getByRole('button', { name: 'Activity Rings' })).toBeDefined();
   });
+
+  it('clicking a size tile in size-picker calls addWidget and onClose', async () => {
+    const onClose = vi.fn();
+    render(<Wrapper><WidgetCarousel cellSize={120} onClose={onClose} /></Wrapper>);
+    // Enter size-picker for Budget Summary
+    await userEvent.click(screen.getByRole('button', { name: 'Budget Summary' }));
+    // Click the 2×2 size tile
+    await userEvent.click(screen.getByRole('button', { name: '2 × 2' }));
+    expect(mockAddWidget).toHaveBeenCalledWith('finance', 'budget-summary', 2, 2);
+    expect(onClose).toHaveBeenCalled();
+  });
 });
