@@ -30,6 +30,7 @@ interface BoardState {
   moveWidget: (id: string, targetCell: { x: number; y: number }) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
   addWidget: (category: Category, widgetType: string, w: number, h: number, targetCell?: { x: number; y: number }) => void;
+  placeWidgetFromPreview: (previewLayout: WidgetLayout[], draftId: string) => void;
   removeWidget: (id: string) => void;
   swapWidgets: (id: string, targetId: string) => void;
   resetBoard: () => void;
@@ -59,6 +60,11 @@ export const useBoard = create<BoardState>()(
         };
         set({ widgets: strategy().preview(get().widgets, { kind: 'add', widget }) });
       },
+      // Commit a drag-to-place drop exactly as previewed: the dragged-in widget arrives
+      // in `previewLayout` under its draft palette id; promote it to a real id and store
+      // the layout verbatim so the widget lands on the same cell the drop ghost showed.
+      placeWidgetFromPreview: (previewLayout, draftId) =>
+        set({ widgets: previewLayout.map((w) => (w.id === draftId ? { ...w, id: newId() } : w)) }),
       swapWidgets: (id, targetId) =>
         set({ widgets: strategy().preview(get().widgets, { kind: 'swap', id, targetId }) }),
       resetBoard: () => set({ widgets: strategy().resolve(seedWidgets()) }),

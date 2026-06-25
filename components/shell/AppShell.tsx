@@ -43,11 +43,11 @@ export function AppShell() {
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
-  const addWidget = useBoard((s) => s.addWidget);
+  const placeWidgetFromPreview = useBoard((s) => s.placeWidgetFromPreview);
   const swapWidgets = useBoard((s) => s.swapWidgets);
   const layoutMode = useSettings((s) => s.layoutMode);
 
-  const { setPalettePreview, setFabOpen } = useDragStore();
+  const setFabOpen = useDragStore((s) => s.setFabOpen);
 
   const [dragState, setDragState] = useState<DragState>({ phase: 'idle' });
   // Mirror dragState in a ref updated synchronously inside the handlers. dnd-kit can fire
@@ -70,8 +70,6 @@ export function AppShell() {
       }
     });
   }, []);
-  // Track palette drag separately (widget drag uses dragState)
-  const [paletteActiveId, setPaletteActiveId] = useState<string | null>(null);
 
   // Hit-test against committed grid positions (stable, not animated) to avoid flicker
   // during spring transitions. currentTargetId uses a full-rect zone (no inset) so the
@@ -113,9 +111,13 @@ export function AppShell() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  const paletteInfo = paletteActiveId ? parsePaletteId(paletteActiveId) : null;
-  const activeWidget: WidgetLayout | null = paletteInfo
-    ? { id: paletteActiveId!, x: 0, y: 0, w: paletteInfo.w, h: paletteInfo.h, category: paletteInfo.cat, widgetType: paletteInfo.widgetType, order: 0 }
+  const dragActiveId = dragState.phase === 'dragging' ? dragState.activeId : null;
+  const paletteInfo =
+    dragActiveId && dragActiveId.startsWith('palette:')
+      ? parsePaletteId(dragActiveId)
+      : null;
+  const activeWidget: WidgetLayout | null = paletteInfo && dragActiveId
+    ? { id: dragActiveId, x: 0, y: 0, w: paletteInfo.w, h: paletteInfo.h, category: paletteInfo.cat, widgetType: paletteInfo.widgetType, order: 0 }
     : dragState.phase === 'dragging'
       ? dragState.previewLayout.find((w) => w.id === dragState.activeId) ?? null
       : null;
@@ -123,7 +125,11 @@ export function AppShell() {
   function handleDragStart(e: DragStartEvent) {
     const id = String(e.active.id);
     if (id.startsWith('palette:')) {
-      setPaletteActiveId(id);
+      const parsed = parsePaletteId(id);
+      if (!parsed) return;
+      // Seed previewLayout as committed; the first move computes the add-preview
+      // (temp widget) so existing widgets reflow around the landing spot.
+      setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout: committed });
       return;
     }
     const widget = committed.find((w) => w.id === id);
@@ -137,14 +143,31 @@ export function AppShell() {
     const id = String(e.active.id);
 
     if (id.startsWith('palette:')) {
-      const board = boardRef.current;
-      const rect = e.active.rect.current.translated;
-      if (!board || !rect) return;
-      const b = board.getBoundingClientRect();
-      const cell = pointToCell(rect.left - b.left, rect.top - b.top, metrics);
       const parsed = parsePaletteId(id);
-      if (!parsed) return;
-      setPalettePreview({ x: cell.x, y: cell.y, w: parsed.w, h: parsed.h, category: parsed.cat });
+      const board = boardRef.current;
+      if (!parsed || !board || !(e.activatorEvent instanceof PointerEvent)) return;
+      const boardRect = board.getBoundingClientRect();
+      // Anchor the landing cell on the pointer (like board-tile drags), not the dragged
+      // card's rect top-left, so the drop tracks the cursor.
+      const clientX = e.activatorEvent.clientX + e.delta.x;
+      const clientY = e.activatorEvent.clientY + e.delta.y;
+      const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
+      const order = committed.reduce((max, x) => Math.max(max, x.order), -1) + 1;
+      const temp: WidgetLayout = {
+        id,
+        x: cell.x,
+        y: cell.y,
+        w: parsed.w,
+        h: parsed.h,
+        category: parsed.cat,
+        widgetType: parsed.widgetType,
+        order,
+      };
+      // Inject the new widget then position it through the SAME insert pipeline board
+      // tiles use, so existing widgets reflow around it and it lands at the cursor cell —
+      // instead of `kind:'add'`, which appends to the end of the board.
+      const previewLayout = getStrategy(layoutMode).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
+      setDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
       return;
     }
 
@@ -195,13 +218,31 @@ export function AppShell() {
     const id = String(e.active.id);
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
-      if (parsed) {
-        const pp = useDragStore.getState().palettePreview;
-        addWidget(parsed.cat, parsed.widgetType, parsed.w, parsed.h, pp ? { x: pp.x, y: pp.y } : undefined);
+      const board = boardRef.current;
+      const rect = e.active.rect.current.translated;
+      // Only commit if the dragged card's center is inside the board.
+      let inside = false;
+      if (board && rect) {
+        const b = board.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        inside = cx >= b.left && cx <= b.right && cy >= b.top && cy <= b.bottom;
+      }
+      // Read from the ref (not the render closure) so a rapid palette drop that
+      // runs before the "dragging" render commits still sees the add-preview.
+      const ds = dragStateRef.current;
+      const placed =
+        ds.phase === 'dragging'
+          ? ds.previewLayout.find((w) => w.id === id)
+          : null;
+      if (parsed && inside && placed && ds.phase === 'dragging') {
+        // Commit exactly what the drop ghost showed: the reflowed layout with the
+        // dragged-in widget promoted from its draft palette id to a real id. The
+        // widget lands on the same cell as the preview, in either layout mode.
+        placeWidgetFromPreview(ds.previewLayout, id);
         setFabOpen(false);
       }
-      setPaletteActiveId(null);
-      setPalettePreview(null);
+      setDrag({ phase: 'idle' });
       return;
     }
     // Read the live drag state from the ref (not the render closure) and ALWAYS reset to
@@ -222,8 +263,6 @@ export function AppShell() {
 
   function handleDragCancel() {
     setDrag({ phase: 'idle' });
-    setPaletteActiveId(null);
-    setPalettePreview(null);
   }
 
   return (

@@ -1,23 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DndContext } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { CarouselCard } from './CarouselCard';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
-import type { GridMetrics } from '@/lib/grid/collision';
 
-const metrics: GridMetrics = { cellSize: 100, gap: 12, cols: 6 };
 const def = WIDGET_REGISTRY.find((d) => d.type === 'budget-summary')!;
 
+// Mirror the production sensor: a 4px activation distance lets a click (no
+// pointer movement) fall through to the preview's onClick instead of starting
+// a drag.
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <DndContext>{children}</DndContext>;
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  return <DndContext sensors={sensors}>{children}</DndContext>;
 }
 
 describe('CarouselCard', () => {
   it('renders the card label', () => {
     render(
       <Wrapper>
-        <CarouselCard definition={def} metrics={metrics} isOpen={false} onToggle={vi.fn()} onAdd={vi.fn()} />
+        <CarouselCard definition={def} isOpen={false} onToggle={vi.fn()} onAdd={vi.fn()} />
       </Wrapper>,
     );
     expect(screen.getByText('Budget Summary')).toBeDefined();
@@ -27,7 +29,7 @@ describe('CarouselCard', () => {
     const onToggle = vi.fn();
     render(
       <Wrapper>
-        <CarouselCard definition={def} metrics={metrics} isOpen={false} onToggle={onToggle} onAdd={vi.fn()} />
+        <CarouselCard definition={def} isOpen={false} onToggle={onToggle} onAdd={vi.fn()} />
       </Wrapper>,
     );
     await userEvent.click(screen.getByRole('button', { name: /Budget Summary/i }));
@@ -37,7 +39,7 @@ describe('CarouselCard', () => {
   it('shows size chips when isOpen is true', () => {
     render(
       <Wrapper>
-        <CarouselCard definition={def} metrics={metrics} isOpen={true} onToggle={vi.fn()} onAdd={vi.fn()} />
+        <CarouselCard definition={def} isOpen={true} onToggle={vi.fn()} onAdd={vi.fn()} />
       </Wrapper>,
     );
     expect(screen.getByRole('button', { name: '1×1' })).toBeDefined();
@@ -47,7 +49,7 @@ describe('CarouselCard', () => {
   it('hides size chips when isOpen is false', () => {
     render(
       <Wrapper>
-        <CarouselCard definition={def} metrics={metrics} isOpen={false} onToggle={vi.fn()} onAdd={vi.fn()} />
+        <CarouselCard definition={def} isOpen={false} onToggle={vi.fn()} onAdd={vi.fn()} />
       </Wrapper>,
     );
     expect(screen.queryByRole('button', { name: '1×1' })).toBeNull();
@@ -57,15 +59,10 @@ describe('CarouselCard', () => {
     const onAdd = vi.fn();
     render(
       <Wrapper>
-        <CarouselCard definition={def} metrics={metrics} isOpen={true} onToggle={vi.fn()} onAdd={onAdd} />
+        <CarouselCard definition={def} isOpen={true} onToggle={vi.fn()} onAdd={onAdd} />
       </Wrapper>,
     );
-    // Find the 2×2 size chip button
-    const allButtons = screen.getAllByRole('button', { name: '2×2' });
-    const sizeChipButton = allButtons.find(btn => btn.hasAttribute('data-dragging'));
-    if (sizeChipButton) {
-      sizeChipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    }
+    await userEvent.click(screen.getByRole('button', { name: '2×2' }));
     expect(onAdd).toHaveBeenCalledWith(2, 2);
   });
 });

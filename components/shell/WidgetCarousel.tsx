@@ -7,7 +7,6 @@ import { CarouselCard } from './CarouselCard';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { useBoard } from '@/lib/state/boardStore';
 import type { Category } from '@/lib/grid/types';
-import type { GridMetrics } from '@/lib/grid/collision';
 
 interface FilterEntry {
   label: string;
@@ -22,8 +21,6 @@ const CATEGORY_FILTERS: FilterEntry[] = [
   { label: 'Calendar',  value: 'calendar',  Icon: CalendarDays },
   { label: 'Lifestyle', value: 'lifestyle', Icon: Sparkles    },
 ];
-
-const STUB_METRICS: GridMetrics = { cellSize: 80, gap: 12, cols: 6 };
 
 interface WidgetCarouselProps {
   onClose: () => void;
@@ -72,7 +69,6 @@ export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
             <CarouselCard
               key={def.type}
               definition={def}
-              metrics={STUB_METRICS}
               isOpen={selectedType === def.type}
               onToggle={() => setSelectedType(selectedType === def.type ? null : def.type)}
               onAdd={(w, h) => handleAdd(def.category, def.type, w, h)}

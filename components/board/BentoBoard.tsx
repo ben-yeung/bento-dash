@@ -7,7 +7,6 @@ import { DropPreview } from './DropPreview';
 import { ResizeHandle } from './ResizeHandle';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
-import { useDragStore } from '@/lib/state/dragStore';
 import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
 import { nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/sizes';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
@@ -128,8 +127,6 @@ export function BentoBoard({
 
   const manageMode = useUi((s) => s.manageMode);
 
-  const palettePreview = useDragStore((s) => s.palettePreview);
-
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [resizePreview, setResizePreview] = useState<WidgetLayout[] | null>(null);
 
@@ -233,19 +230,6 @@ export function BentoBoard({
             mode={dragState.targetKind === 'insert' ? 'insert' : 'none'}
           />
         )}
-      {palettePreview && (
-        <DropPreview
-          widget={{
-            id: '__pal__',
-            x: palettePreview.x,
-            y: palettePreview.y,
-            w: palettePreview.w,
-            h: palettePreview.h,
-            category: palettePreview.category,
-            order: 0,
-          }}
-        />
-      )}
     </div>
   );
 }

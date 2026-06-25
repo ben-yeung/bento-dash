@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DndContext } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { WidgetCarousel } from './WidgetCarousel';
 import { useDragStore } from '@/lib/state/dragStore';
 import { useBoard } from '@/lib/state/boardStore';
@@ -13,8 +13,11 @@ vi.mock('@/lib/state/boardStore', () => ({
 
 const mockAddWidget = vi.fn();
 
+// Mirror the production sensor: a 4px activation distance lets a card click
+// (no pointer movement) open the size picker instead of starting a drag.
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <DndContext>{children}</DndContext>;
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  return <DndContext sensors={sensors}>{children}</DndContext>;
 }
 
 describe('WidgetCarousel', () => {
@@ -69,12 +72,7 @@ describe('WidgetCarousel', () => {
     const onClose = vi.fn();
     render(<Wrapper><WidgetCarousel onClose={onClose} /></Wrapper>);
     await userEvent.click(screen.getByRole('button', { name: 'Budget Summary' }));
-    // Size chips are draggable, so we need to dispatch a click event
-    const allButtons = screen.getAllByRole('button', { name: '1×1' });
-    const sizeChipButton = allButtons.find(btn => btn.hasAttribute('data-dragging'));
-    if (sizeChipButton) {
-      sizeChipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    }
+    await userEvent.click(screen.getByRole('button', { name: '1×1' }));
     expect(mockAddWidget).toHaveBeenCalledWith('finance', 'budget-summary', 1, 1);
     expect(onClose).toHaveBeenCalled();
   });
