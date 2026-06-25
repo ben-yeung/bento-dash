@@ -122,6 +122,7 @@ export function BentoBoard({
   const committed = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
+  const layoutOrientation = useSettings((s) => s.layoutOrientation);
   const activeTags = useSettings((s) => s.activeTags);
   const filterMode = useSettings((s) => s.filterMode);
 
@@ -180,10 +181,18 @@ export function BentoBoard({
       ref={boardRef}
       className={styles.board}
       data-manage-mode={manageMode}
-      style={{
-        gridAutoRows: `${metrics.cellSize}px`,
-        '--cell-size': `${metrics.cellSize}px`,
-      } as React.CSSProperties}
+      data-orientation={layoutOrientation}
+      style={(layoutOrientation === 'horizontal'
+        ? {
+            gridTemplateRows: `repeat(${typeof metrics.rows === 'number' ? metrics.rows : 4}, ${metrics.cellSize}px)`,
+            gridAutoColumns: `${metrics.cellSize}px`,
+            '--cell-size': `${metrics.cellSize}px`,
+          }
+        : {
+            gridAutoRows: `${metrics.cellSize}px`,
+            '--cell-size': `${metrics.cellSize}px`,
+          }
+      ) as unknown as React.CSSProperties}
     >
       <AnimatePresence>
         {widgets
