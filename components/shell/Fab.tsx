@@ -4,11 +4,11 @@ import styles from './Fab.module.css';
 import { WidgetCarousel } from './WidgetCarousel';
 import { useDragStore } from '@/lib/state/dragStore';
 
-const SPRING_OPEN = { type: 'spring' as const, stiffness: 320, damping: 28, mass: 0.9 };
-const SPRING_CLOSE = { type: 'spring' as const, stiffness: 380, damping: 36, mass: 0.85 };
+const SPRING_OPEN  = { type: 'spring' as const, stiffness: 320, damping: 28,  mass: 0.9  };
+const SPRING_CLOSE = { type: 'spring' as const, stiffness: 380, damping: 36,  mass: 0.85 };
 
-export function Fab() {
-  const fabOpen = useDragStore((s) => s.fabOpen);
+export function Fab({ cellSize }: { cellSize: number }) {
+  const fabOpen    = useDragStore((s) => s.fabOpen);
   const setFabOpen = useDragStore((s) => s.setFabOpen);
 
   return (
@@ -28,7 +28,6 @@ export function Fab() {
         )}
       </AnimatePresence>
 
-      <div className={styles.anchor}>
       <AnimatePresence mode="popLayout">
         {!fabOpen ? (
           <motion.button
@@ -36,7 +35,7 @@ export function Fab() {
             layoutId="fab-morph"
             className={styles.fabBtn}
             animate={{ borderRadius: '26px' }}
-            aria-label="Open widget carousel"
+            aria-label="Open widget menu"
             onClick={() => setFabOpen(true)}
             transition={SPRING_CLOSE}
           >
@@ -44,18 +43,17 @@ export function Fab() {
           </motion.button>
         ) : (
           <motion.div
-            key="fab-carousel"
+            key="fab-panel"
             layoutId="fab-morph"
-            className={styles.carouselWrapper}
-            animate={{ borderRadius: '22px' }}
+            layout
+            className={styles.panel}
+            animate={{ borderRadius: '22px 22px 0 0' }}
             transition={SPRING_OPEN}
-            style={{ transformOrigin: 'bottom right' }}
           >
-            <WidgetCarousel onClose={() => setFabOpen(false)} />
+            <WidgetCarousel cellSize={cellSize} onClose={() => setFabOpen(false)} />
           </motion.div>
         )}
       </AnimatePresence>
-      </div>
     </>
   );
 }

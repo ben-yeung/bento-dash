@@ -23,10 +23,11 @@ const CATEGORY_FILTERS: FilterEntry[] = [
 ];
 
 interface WidgetCarouselProps {
+  cellSize: number;
   onClose: () => void;
 }
 
-export function WidgetCarousel({ onClose }: WidgetCarouselProps) {
+export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
   const addWidget = useBoard((s) => s.addWidget);
   const [activeFilter, setActiveFilter] = useState<Category | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);

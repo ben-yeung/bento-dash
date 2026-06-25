@@ -31,7 +31,7 @@ describe('WidgetCarousel', () => {
   });
 
   it('renders all 10 widget cards', () => {
-    render(<Wrapper><WidgetCarousel onClose={vi.fn()} /></Wrapper>);
+    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
     // Cards have aria-label with their names, cards have no "Filter:" prefix
     expect(screen.getByRole('button', { name: 'Budget Summary' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Activity Rings' })).toBeDefined();
@@ -46,7 +46,7 @@ describe('WidgetCarousel', () => {
   });
 
   it('clicking a card opens its size picker', async () => {
-    render(<Wrapper><WidgetCarousel onClose={vi.fn()} /></Wrapper>);
+    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
     // Click card button with aria-expanded
     const budgetCard = screen.getByRole('button', { name: 'Budget Summary' });
     await userEvent.click(budgetCard);
@@ -54,7 +54,7 @@ describe('WidgetCarousel', () => {
   });
 
   it('clicking a second card closes the first picker and opens the new one', async () => {
-    render(<Wrapper><WidgetCarousel onClose={vi.fn()} /></Wrapper>);
+    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
     // Activity Rings has 2×1; Budget Summary does not.
     // Open Activity Rings first (has 2×1), then switch to Budget Summary (2×1 disappears).
     await userEvent.click(screen.getByRole('button', { name: 'Activity Rings' }));
@@ -70,7 +70,7 @@ describe('WidgetCarousel', () => {
 
   it('clicking a size chip calls addWidget and then onClose', async () => {
     const onClose = vi.fn();
-    render(<Wrapper><WidgetCarousel onClose={onClose} /></Wrapper>);
+    render(<Wrapper><WidgetCarousel cellSize={64} onClose={onClose} /></Wrapper>);
     await userEvent.click(screen.getByRole('button', { name: 'Budget Summary' }));
     await userEvent.click(screen.getByRole('button', { name: '1×1' }));
     expect(mockAddWidget).toHaveBeenCalledWith('finance', 'budget-summary', 1, 1);
@@ -78,7 +78,7 @@ describe('WidgetCarousel', () => {
   });
 
   it('filter chip "Health" shows only Health cards', async () => {
-    render(<Wrapper><WidgetCarousel onClose={vi.fn()} /></Wrapper>);
+    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
     // Click filter chip with aria-label containing "Filter:"
     await userEvent.click(screen.getByRole('button', { name: /Filter: Health/i }));
     // Finance card button should be gone

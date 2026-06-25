@@ -286,7 +286,7 @@ export function AppShell() {
               dragState={dragState}
             />
           </div>
-          <Fab />
+          <Fab cellSize={metrics.cellSize} />
         </div>
       </div>
       <DragOverlay dropAnimation={null}>

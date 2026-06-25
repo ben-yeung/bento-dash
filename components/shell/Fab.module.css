@@ -1,27 +1,22 @@
-.carouselWrapper {
+/* Full-width bottom panel — morphs from/to the FAB button */
+.panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--surface-2);
   border: 1px solid var(--border-hairline);
-  border-radius: 22px;
+  border-bottom: none;
+  z-index: 100;
+  overflow: hidden;
 }
 
-.anchor {
+/* FAB button — self-positioned bottom-right */
+.fabBtn {
   position: fixed;
   right: 28px;
   bottom: 28px;
   z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: transparent;
-}
-
-.fabBtn {
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -41,4 +36,11 @@
 
 .fabBtn:hover {
   box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: transparent;
 }
