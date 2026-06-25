@@ -28,13 +28,20 @@ export function Banner({ profileSlot }: { profileSlot?: ReactNode }) {
   });
   return (
     <header className={styles.banner}>
-      <div>
+      <div className={styles.left}>
         <div className={styles.greet}>{greeting}, {displayName || 'there'}</div>
-        <div className={styles.sub}>
-          {date} · {weather.temp}° {weather.condition}
-        </div>
+        <div className={styles.date}>{date}</div>
       </div>
-      <div className={styles.right}>{profileSlot}</div>
+      <div className={styles.right}>
+        <div className={styles.weatherBlock}>
+          <div className={styles.weatherTop}>
+            <span className={styles.weatherEmoji}>{conditionEmoji(weather.condition)}</span>
+            <span className={styles.weatherTemp}>{weather.temp}°</span>
+          </div>
+          <div className={styles.weatherCond}>{weather.condition}</div>
+        </div>
+        {profileSlot}
+      </div>
     </header>
   );
 }
