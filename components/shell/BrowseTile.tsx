@@ -4,6 +4,8 @@ import { useDraggable } from '@dnd-kit/core';
 import styles from './BrowseTile.module.css';
 import { ScaledWidgetContent } from '@/components/widgets/ScaledWidgetContent';
 import type { WidgetDefinition } from '@/lib/widgets/registry';
+import { useSettings } from '@/lib/state/settingsStore';
+import { getRowCount } from '@/lib/state/gridState';
 
 interface BrowseTileProps {
   definition: WidgetDefinition;
@@ -12,7 +14,12 @@ interface BrowseTileProps {
 }
 
 export function BrowseTile({ definition, onSelect, cellSize }: BrowseTileProps) {
-  const defaultSize = definition.supportedSizes[0];
+  const orientation = useSettings((s) => s.layoutOrientation);
+  const defaultSize = (() => {
+    if (orientation !== 'horizontal') return definition.supportedSizes[0];
+    const rows = getRowCount();
+    return definition.supportedSizes.find((s) => s.h <= rows) ?? definition.supportedSizes[0];
+  })();
   const dragId = `palette:${definition.category}:${definition.type}:${defaultSize.w}x${defaultSize.h}`;
 
   const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId });
