@@ -2,7 +2,7 @@
 import { type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
-import { X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import styles from './Widget.module.css';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { ScaledWidgetContent } from '@/components/widgets/ScaledWidgetContent';
@@ -59,6 +59,7 @@ export function Widget({
       data-dimmed={dimmed}
       data-swap-target={isSwapTarget}
       data-resizing={resizing}
+      data-manage-mode={manageMode}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
       ref={setNodeRef}
@@ -74,6 +75,11 @@ export function Widget({
       {snapTarget && (
         <span className={styles.snapBadge}>{snapTarget}</span>
       )}
+      {manageMode && (
+        <svg className={styles.manageBorder} aria-hidden>
+          <rect x="0" y="0" width="100%" height="100%" rx="14" ry="14" />
+        </svg>
+      )}
       {/* TODO(manage-mode-x-exit-anim): the X mounts/unmounts via the manageMode conditional with only enter animation (initial/animate); it pops out abruptly when manage mode toggles off. Wrap in AnimatePresence with an exit prop if the pop-out animation is wanted. */}
       {manageMode && (
         <motion.button
@@ -85,7 +91,7 @@ export function Widget({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => removeWidget(widget.id)}
         >
-          <X size={12} strokeWidth={2.5} />
+          <Trash2 size={12} strokeWidth={2.5} />
         </motion.button>
       )}
       {children}
