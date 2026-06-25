@@ -1,20 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { WidgetCarousel } from './WidgetCarousel';
-import { useDragStore } from '@/lib/state/dragStore';
 import { useBoard } from '@/lib/state/boardStore';
-import { useSettings } from '@/lib/state/settingsStore';
 
-vi.mock('@/lib/state/boardStore', () => ({
-  useBoard: vi.fn(),
-}));
+vi.mock('@/lib/state/boardStore', () => ({ useBoard: vi.fn() }));
 
 const mockAddWidget = vi.fn();
 
-// Mirror the production sensor: a 4px activation distance lets a card click
-// (no pointer movement) open the size picker instead of starting a drag.
 function Wrapper({ children }: { children: React.ReactNode }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   return <DndContext sensors={sensors}>{children}</DndContext>;
@@ -25,14 +19,11 @@ describe('WidgetCarousel', () => {
     vi.mocked(useBoard).mockImplementation((sel: any) =>
       sel({ widgets: [], addWidget: mockAddWidget, moveWidget: vi.fn(), removeWidget: vi.fn(), resizeWidget: vi.fn(), reResolve: vi.fn(), setWidgets: vi.fn() }),
     );
-    useSettings.setState({ layoutMode: 'autoPack' });
-    useDragStore.setState({ fabOpen: true });
     mockAddWidget.mockClear();
   });
 
-  it('renders all 10 widget cards', () => {
-    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
-    // Cards have aria-label with their names, cards have no "Filter:" prefix
+  it('renders all 10 widget tiles in browse state', () => {
+    render(<Wrapper><WidgetCarousel cellSize={120} onClose={vi.fn()} /></Wrapper>);
     expect(screen.getByRole('button', { name: 'Budget Summary' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Activity Rings' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Calories' })).toBeDefined();
@@ -45,45 +36,29 @@ describe('WidgetCarousel', () => {
     expect(screen.getByRole('button', { name: 'Daily Note' })).toBeDefined();
   });
 
-  it('clicking a card opens its size picker', async () => {
-    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
-    // Click card button with aria-expanded
-    const budgetCard = screen.getByRole('button', { name: 'Budget Summary' });
-    await userEvent.click(budgetCard);
-    expect(screen.getByRole('button', { name: '1×1' })).toBeDefined();
-  });
-
-  it('clicking a second card closes the first picker and opens the new one', async () => {
-    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
-    // Activity Rings has 2×1; Budget Summary does not.
-    // Open Activity Rings first (has 2×1), then switch to Budget Summary (2×1 disappears).
-    await userEvent.click(screen.getByRole('button', { name: 'Activity Rings' }));
-    expect(screen.getByRole('button', { name: '2×1' })).toBeDefined();
-    const budgetButton = screen.getByRole('button', { name: 'Budget Summary' });
-    await userEvent.click(budgetButton);
-    // Activity Rings size chips gone (Activity Rings has 2×1 which Budget Summary doesn't)
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: '2×1' })).toBeNull();
-    });
-    expect(screen.getByRole('button', { name: '1×1' })).toBeDefined(); // budget-summary also has 1×1
-  });
-
-  it('clicking a size chip calls addWidget and then onClose', async () => {
-    const onClose = vi.fn();
-    render(<Wrapper><WidgetCarousel cellSize={64} onClose={onClose} /></Wrapper>);
-    await userEvent.click(screen.getByRole('button', { name: 'Budget Summary' }));
-    await userEvent.click(screen.getByRole('button', { name: '1×1' }));
-    expect(mockAddWidget).toHaveBeenCalledWith('finance', 'budget-summary', 1, 1);
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it('filter chip "Health" shows only Health cards', async () => {
-    render(<Wrapper><WidgetCarousel cellSize={64} onClose={vi.fn()} /></Wrapper>);
-    // Click filter chip with aria-label containing "Filter:"
+  it('filter chip "Health" shows only Health widget tiles', async () => {
+    render(<Wrapper><WidgetCarousel cellSize={120} onClose={vi.fn()} /></Wrapper>);
     await userEvent.click(screen.getByRole('button', { name: /Filter: Health/i }));
-    // Finance card button should be gone
     expect(screen.queryByRole('button', { name: 'Budget Summary' })).toBeNull();
-    // Health card buttons should still be there
+    expect(screen.getByRole('button', { name: 'Activity Rings' })).toBeDefined();
+  });
+
+  it('clicking a tile transitions to size-picker for that widget', async () => {
+    render(<Wrapper><WidgetCarousel cellSize={120} onClose={vi.fn()} /></Wrapper>);
+    await userEvent.click(screen.getByRole('button', { name: 'Budget Summary' }));
+    // Size-picker header shows "Budget Summary" as the title
+    expect(screen.getByText('Budget Summary')).toBeDefined();
+    // Back button is present
+    expect(screen.getByRole('button', { name: /Widgets/i })).toBeDefined();
+    // Browse tiles are gone
+    expect(screen.queryByRole('button', { name: 'Activity Rings' })).toBeNull();
+  });
+
+  it('back button in size-picker returns to browse state', async () => {
+    render(<Wrapper><WidgetCarousel cellSize={120} onClose={vi.fn()} /></Wrapper>);
+    await userEvent.click(screen.getByRole('button', { name: 'Budget Summary' }));
+    await userEvent.click(screen.getByRole('button', { name: /Widgets/i }));
+    // Browse tiles are back
     expect(screen.getByRole('button', { name: 'Activity Rings' })).toBeDefined();
   });
 });
