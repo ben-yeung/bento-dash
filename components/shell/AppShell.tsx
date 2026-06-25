@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -38,6 +38,12 @@ function parsePaletteId(id: string): { cat: Category; widgetType: string; w: num
   return { cat: cat as Category, widgetType, w, h };
 }
 
+// Module-level constant so useSensor's useMemo([sensor, options]) sees a stable reference
+// every render. Without this, useSensors returns a new array each render → activators are
+// new → internalContext is new → every useDraggable consumer re-renders after each setDrag
+// call → framer-motion layout effects cascade → nestedUpdateCount hits 50 after ~25 moves.
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 4 } } as const;
+
 export function AppShell() {
   const boardRef = useRef<HTMLDivElement>(null);
   const metrics = useGridMetrics(boardRef);
@@ -59,10 +65,12 @@ export function AppShell() {
   // with a stale `idle` value — it hit the early return and never reset, leaving phase stuck
   // at 'dragging' (widget filtered out + drop-preview outline lingering until the next drag).
   const dragStateRef = useRef<DragState>(dragState);
-  const setDrag = (s: DragState) => {
+  // Stable wrapper: keeps dragStateRef in sync so rapid-fire handlers always read the latest
+  // phase without a stale closure, and useState setter is stable so useCallback deps stay tight.
+  const setDrag = useCallback((s: DragState) => {
     dragStateRef.current = s;
     setDragState(s);
-  };
+  }, []);
 
   // Re-resolve board positions whenever layoutMode changes so widgets
   // compact correctly under the new strategy immediately.
@@ -74,45 +82,7 @@ export function AppShell() {
     });
   }, []);
 
-  // Hit-test against committed grid positions (stable, not animated) to avoid flicker
-  // during spring transitions. currentTargetId uses a full-rect zone (no inset) so the
-  // active swap target stays sticky even when the cursor grazes its edge.
-  function findWidgetUnderCursor(
-    x: number,
-    y: number,
-    excludeId: string,
-    currentTargetId: string | null,
-    boardRect: DOMRect,
-  ): string | null {
-    const stride = metrics.cellSize + metrics.gap;
-    const inset = metrics.gap; // new targets require cursor to be gap-px inside boundary
-
-    const widgetRect = (w: { x: number; y: number; w: number; h: number }, i: number) => ({
-      left:   boardRect.left + w.x * stride + i,
-      top:    boardRect.top  + w.y * stride + i,
-      right:  boardRect.left + w.x * stride + w.w * metrics.cellSize + (w.w - 1) * metrics.gap - i,
-      bottom: boardRect.top  + w.y * stride + w.h * metrics.cellSize + (w.h - 1) * metrics.gap - i,
-    });
-
-    // Hysteresis: keep the current swap target if cursor is still inside its full rect
-    if (currentTargetId) {
-      const cur = committed.find((w) => w.id === currentTargetId);
-      if (cur) {
-        const r = widgetRect(cur, 0);
-        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return currentTargetId;
-      }
-    }
-
-    // Enter a new target only when cursor is inset-px inside its boundary
-    for (const w of committed) {
-      if (w.id === excludeId) continue;
-      const r = widgetRect(w, inset);
-      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return w.id;
-    }
-    return null;
-  }
-
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(useSensor(PointerSensor, POINTER_SENSOR_OPTIONS));
 
   const dragActiveId = dragState.phase === 'dragging' ? dragState.activeId : null;
   const paletteInfo =
@@ -125,7 +95,7 @@ export function AppShell() {
       ? dragState.previewLayout.find((w) => w.id === dragState.activeId) ?? null
       : null;
 
-  function handleDragStart(e: DragStartEvent) {
+  const handleDragStart = useCallback((e: DragStartEvent) => {
     const id = String(e.active.id);
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
@@ -140,9 +110,9 @@ export function AppShell() {
     const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }
+  }, [committed, layoutMode, setDrag]);
 
-  function handleDragMove(e: DragMoveEvent) {
+  const handleDragMove = useCallback((e: DragMoveEvent) => {
     const id = String(e.active.id);
 
     if (id.startsWith('palette:')) {
@@ -155,6 +125,14 @@ export function AppShell() {
       const clientX = e.activatorEvent.clientX + e.delta.x;
       const clientY = e.activatorEvent.clientY + e.delta.y;
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
+      // Skip if cursor hasn't crossed into a new grid cell — avoids a setDrag call (and thus
+      // a second React commit) on every pointermove within the same cell, which was the
+      // primary driver of nestedUpdateCount accumulation hitting React's limit of 50.
+      const ds = dragStateRef.current;
+      if (ds.phase === 'dragging' && ds.activeId === id && ds.targetKind === 'insert') {
+        const placed = ds.previewLayout.find((w) => w.id === id);
+        if (placed && placed.x === cell.x && placed.y === cell.y) return;
+      }
       const order = committed.reduce((max, x) => Math.max(max, x.order), -1) + 1;
       const temp: WidgetLayout = {
         id,
@@ -187,21 +165,57 @@ export function AppShell() {
     if (!board) return;
     const boardRect = board.getBoundingClientRect();
 
-    const currentTargetId =
-      ds.targetKind === 'swap' ? ds.targetId : null;
-    const hitId = findWidgetUnderCursor(clientX, clientY, activeId, currentTargetId, boardRect);
+    // Hit-test against committed grid positions (stable, not animated) to avoid flicker
+    // during spring transitions. currentTargetId uses a full-rect zone (no inset) so the
+    // active swap target stays sticky even when the cursor grazes its edge.
+    const stride = metrics.cellSize + metrics.gap;
+    const inset = metrics.gap; // new targets require cursor to be gap-px inside boundary
+
+    const widgetRect = (w: { x: number; y: number; w: number; h: number }, i: number) => ({
+      left:   boardRect.left + w.x * stride + i,
+      top:    boardRect.top  + w.y * stride + i,
+      right:  boardRect.left + w.x * stride + w.w * metrics.cellSize + (w.w - 1) * metrics.gap - i,
+      bottom: boardRect.top  + w.y * stride + w.h * metrics.cellSize + (w.h - 1) * metrics.gap - i,
+    });
+
+    const currentTargetId = ds.targetKind === 'swap' ? ds.targetId : null;
+
+    // Hysteresis: keep the current swap target if cursor is still inside its full rect
+    let hitId: string | null = null;
+    if (currentTargetId) {
+      const cur = committed.find((w) => w.id === currentTargetId);
+      if (cur) {
+        const r = widgetRect(cur, 0);
+        if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+          hitId = currentTargetId;
+        }
+      }
+    }
+    if (!hitId) {
+      // Enter a new target only when cursor is inset-px inside its boundary
+      for (const w of committed) {
+        if (w.id === activeId) continue;
+        const r = widgetRect(w, inset);
+        if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+          hitId = w.id;
+          break;
+        }
+      }
+    }
+
     if (hitId) {
       const hit = committed.find((w) => w.id === hitId);
       const active = committed.find((w) => w.id === activeId);
       if (!hit || !active) return;
       const isSameSize = hit.w === active.w && hit.h === active.h;
       if (isSameSize) {
+        // Skip if already showing this swap
+        if (ds.targetKind === 'swap' && ds.targetId === hitId) return;
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
         setDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
         // Cursor left-half of hit widget → insert before it; right-half → insert after it.
         // Lets a wider widget slip between two narrower ones at any sub-widget position.
-        const stride = metrics.cellSize + metrics.gap;
         const hitLeftPx = boardRect.left + hit.x * stride;
         const hitWidthPx = hit.w * metrics.cellSize + (hit.w - 1) * metrics.gap;
         const insertAfter = clientX - hitLeftPx > hitWidthPx / 2;
@@ -212,12 +226,17 @@ export function AppShell() {
     } else {
       // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
+      // Skip if cursor is still in the same grid cell
+      if (ds.targetKind === 'none') {
+        const placed = ds.previewLayout.find((w) => w.id === activeId);
+        if (placed && placed.x === cell.x && placed.y === cell.y) return;
+      }
       const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
       setDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
-  }
+  }, [boardRef, metrics, committed, layoutMode, setDrag]);
 
-  function handleDragEnd(e: DragEndEvent) {
+  const handleDragEnd = useCallback((e: DragEndEvent) => {
     const id = String(e.active.id);
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
@@ -262,11 +281,11 @@ export function AppShell() {
       }
     }
     setDrag({ phase: 'idle' });
-  }
+  }, [boardRef, placeWidgetFromPreview, setFabOpen, moveWidget, swapWidgets, setDrag]);
 
-  function handleDragCancel() {
+  const handleDragCancel = useCallback(() => {
     setDrag({ phase: 'idle' });
-  }
+  }, [setDrag]);
 
   return (
     <DndContext
