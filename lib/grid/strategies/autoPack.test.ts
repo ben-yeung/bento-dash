@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { autoPack, packDense, reorderByCell } from './autoPack';
+import { autoPack, packDense, reorderByCell, createAutoPack } from './autoPack';
 import type { WidgetLayout } from '../types';
 
 const wdg = (id: string, w: number, h: number, order: number): WidgetLayout => ({
@@ -51,5 +51,14 @@ describe('autoPack', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 2, y: 0 });
     expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
     expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 4, y: 0 }); // untouched
+  });
+
+  it('createAutoPack with cols=4 packs within 4 columns', () => {
+    const strat = createAutoPack(4, 999);
+    const widgets = [wdg('a', 2, 1, 0), wdg('b', 2, 1, 1), wdg('c', 2, 1, 2)];
+    const out = strat.resolve(widgets);
+    expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 0, y: 0 });
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 2, y: 0 });
+    expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 0, y: 1 });
   });
 });
