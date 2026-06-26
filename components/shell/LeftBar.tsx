@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { PencilLine, Info } from 'lucide-react';
 import styles from './LeftBar.module.css';
 import { useSettings } from '@/lib/state/settingsStore';
@@ -17,6 +17,7 @@ export function LeftBar() {
   const widgets = useBoard((s) => s.widgets);
   const availableTags = presentCategories(widgets);
   const [creditsOpen, setCreditsOpen] = useState(false);
+  const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   return (
     <aside className={styles.bar} aria-label="utility bar">
@@ -50,6 +51,7 @@ export function LeftBar() {
         );
       })}
       <button
+        ref={infoButtonRef}
         type="button"
         className={styles.infoButton}
         onClick={() => setCreditsOpen(true)}
@@ -58,7 +60,7 @@ export function LeftBar() {
       >
         <Info size={18} />
       </button>
-      <CreditsModal open={creditsOpen} onClose={() => setCreditsOpen(false)} />
+      <CreditsModal open={creditsOpen} onClose={() => setCreditsOpen(false)} anchorRef={infoButtonRef} />
     </aside>
   );
 }

@@ -11,22 +11,35 @@ const LIBS = [
   { name: 'Motion',   url: 'https://motion.dev' },
 ];
 
-export function CreditsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function CreditsModal({
+  open,
+  onClose,
+  anchorRef,
+}: {
+  open: boolean;
+  onClose: () => void;
+  anchorRef?: React.RefObject<HTMLButtonElement | null>;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const [closing, setClosing] = useState(false);
   const [entering, setEntering] = useState(false);
+  const [pos, setPos] = useState<{ bottom: number; left: number } | undefined>(undefined);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) {
+      if (anchorRef?.current) {
+        const rect = anchorRef.current.getBoundingClientRect();
+        setPos({ bottom: window.innerHeight - rect.bottom, left: rect.right + 8 });
+      }
       dialog.showModal();
       setEntering(true);
       setTimeout(() => setEntering(false), 160);
     } else if (!open && dialog.open) {
       dialog.close();
     }
-  }, [open]);
+  }, [open, anchorRef]);
 
   function handleClose() {
     setClosing(true);
@@ -44,6 +57,7 @@ export function CreditsModal({ open, onClose }: { open: boolean; onClose: () => 
     <dialog
       ref={ref}
       className={`${styles.dialog}${entering ? ` ${styles.open}` : ''}${closing ? ` ${styles.closing}` : ''}`}
+      style={pos}
       onCancel={(e) => { e.preventDefault(); handleClose(); }}
       onClick={handleBackdropClick}
       aria-label="Credits"
