@@ -17,6 +17,7 @@ import { Banner } from './Banner';
 import { ProfileButton } from './ProfileButton';
 import { Fab } from './Fab';
 import { BottomNav } from './BottomNav';
+import { BottomSheet } from './BottomSheet';
 import { BentoBoard } from '@/components/board/BentoBoard';
 import { DragOverlayWidget } from '@/components/board/DragOverlayWidget';
 import { useBoard } from '@/lib/state/boardStore';
@@ -166,7 +167,8 @@ export function AppShell() {
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
       if (!parsed) return;
-      setFabOpen(false); // closes desktop FAB panel and mobile sheet
+      setFabOpen(false);
+      setSheetOpen(false);
       // Seed previewLayout as committed; the first move computes the add-preview
       // (temp widget) so existing widgets reflow around the landing spot.
       setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout: committed });
@@ -178,7 +180,7 @@ export function AppShell() {
     const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }, [committed, layoutMode, setDrag, setFabOpen, isMobile, manageMode]);
+  }, [committed, layoutMode, setDrag, setFabOpen, setSheetOpen, isMobile, manageMode]);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
     const id = String(e.active.id);
@@ -402,6 +404,13 @@ export function AppShell() {
             sheetOpen={sheetOpen}
             onSheetOpen={() => setSheetOpen(true)}
             onSheetClose={() => setSheetOpen(false)}
+          />
+        )}
+        {isMobile && (
+          <BottomSheet
+            open={sheetOpen}
+            cellSize={metrics.cellSize}
+            onClose={() => setSheetOpen(false)}
           />
         )}
       </div>
