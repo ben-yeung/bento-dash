@@ -56,5 +56,7 @@ export function clampLayout(
   mode: LayoutMode,
 ): WidgetLayout[] {
   const clamped = widgets.map((w) => ({ ...w, w: Math.min(w.w, cols) }));
-  return getStrategy(mode, 'horizontal', cols).resolve(clamped);
+  const strategy =
+    mode === 'pushCompact' ? createPushCompact(cols, LARGE) : createAutoPack(cols, LARGE);
+  return strategy.resolve(clamped);
 }

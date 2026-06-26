@@ -95,4 +95,12 @@ describe('clampLayout', () => {
     const result = clampLayout(widgets, 6, 'autoPack');
     expect(result[0].w).toBe(2);
   });
+
+  it('preserves widget height when clamping width', () => {
+    const widgets: WidgetLayout[] = [
+      { id: 'a', x: 0, y: 0, w: 2, h: 3, category: 'health' as Category, order: 0 },
+    ];
+    const result = clampLayout(widgets, 2, 'autoPack');
+    expect(result[0].h).toBe(3);
+  });
 });
