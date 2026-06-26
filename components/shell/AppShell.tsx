@@ -16,6 +16,7 @@ import { LeftBar } from './LeftBar';
 import { Banner } from './Banner';
 import { ProfileButton } from './ProfileButton';
 import { Fab } from './Fab';
+import { BottomNav } from './BottomNav';
 import { BentoBoard } from '@/components/board/BentoBoard';
 import { DragOverlayWidget } from '@/components/board/DragOverlayWidget';
 import { useBoard } from '@/lib/state/boardStore';
@@ -66,6 +67,7 @@ export function AppShell() {
   const setManageMode = useUi((s) => s.setManageMode);
 
   const [dragState, setDragState] = useState<DragState>({ phase: 'idle' });
+  const [sheetOpen, setSheetOpen] = useState(false);
   // Mirror dragState in a ref updated synchronously inside the handlers. dnd-kit can fire
   // onDragStart and onDragEnd in the same task before React commits the "dragging" render
   // (rapid drags), so reading dragState from the render closure left handleDragEnd running
@@ -395,6 +397,13 @@ export function AppShell() {
           )}
           {!isMobile && <Fab cellSize={metrics.cellSize} />}
         </div>
+        {isMobile && (
+          <BottomNav
+            sheetOpen={sheetOpen}
+            onSheetOpen={() => setSheetOpen(true)}
+            onSheetClose={() => setSheetOpen(false)}
+          />
+        )}
       </div>
       <DragOverlay dropAnimation={null}>
         {activeWidget ? <DragOverlayWidget widget={activeWidget} metrics={metrics} /> : null}
