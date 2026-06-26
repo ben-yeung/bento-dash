@@ -168,10 +168,10 @@ export function AppShell() {
     }
     const widget = committed.find((w) => w.id === id);
     if (!widget) return;
-    const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
+    const withoutActive = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }, [committed, layoutMode, setDrag]);
+  }, [committed, layoutMode, layoutOrientation, setDrag]);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
     const id = String(e.active.id);
@@ -200,7 +200,7 @@ export function AppShell() {
       // Inject the new widget then position it through the SAME insert pipeline board
       // tiles use, so existing widgets reflow around it and it lands at the cursor cell —
       // instead of `kind:'add'`, which appends to the end of the board.
-      const previewLayout = getStrategy(layoutMode).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
+      const previewLayout = getStrategy(layoutMode, layoutOrientation).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
       scheduleDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
       return;
     }
@@ -264,7 +264,7 @@ export function AppShell() {
       if (isSameSize) {
         // Skip identical swap to avoid a redundant scheduleDrag call
         if (ds.targetKind === 'swap' && ds.targetId === hitId) return;
-        const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
+        const previewLayout = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
         // Cursor left-half of hit widget → insert before it; right-half → insert after it.
@@ -275,16 +275,16 @@ export function AppShell() {
         const targetX = metrics.rows !== 'auto'
           ? (insertAfter ? hit.x + hit.w : hit.x)
           : Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
-        const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
+        const previewLayout = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
       // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
-      const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
+      const previewLayout = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
       scheduleDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
-  }, [boardRef, metrics, committed, layoutMode, scheduleDrag]);
+  }, [boardRef, metrics, committed, layoutMode, layoutOrientation, scheduleDrag]);
 
   const handleDragEnd = useCallback((e: DragEndEvent) => {
     const id = String(e.active.id);
