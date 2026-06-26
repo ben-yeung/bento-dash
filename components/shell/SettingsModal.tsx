@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Palette, Camera } from 'lucide-react';
@@ -73,7 +73,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-label="settings"
       >
-        <h2 className={styles.title}>Settings</h2>
+        <div className={styles.header}>
+          <h2 className={styles.title}>Settings</h2>
+          <button className={styles.closeX} onClick={onClose} type="button" aria-label="close settings">&#x2715;</button>
+        </div>
 
         {/* Profile header */}
         <div className={styles.profileHeader}>
@@ -255,9 +258,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               }
             }}
           >
-            {confirmingReset ? 'Confirm reset â€” tap again' : 'Reset Defaults'}
+            {confirmingReset ? 'Confirm Reset' : 'Reset Defaults'}
           </button>
-          <button className={styles.close} onClick={onClose} type="button">Done</button>
         </div>
       </div>
     </div>

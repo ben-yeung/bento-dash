@@ -17,7 +17,7 @@
   background: var(--surface) !important;
   /* The modal is fixed-px, so on 2k/4k panels it looks tiny next to the
      viewport-scaled board. Zoom the whole modal (fonts + controls) up on
-     high-res displays; 1080p and below stay at 1×. Tune --modal-scale to taste. */
+     high-res displays; 1080p and below stay at 1x. Tune --modal-scale to taste. */
   transform: scale(var(--modal-scale, 1));
   transform-origin: center center;
 }
@@ -30,10 +30,31 @@
 @media (min-width: 3200px) {
   .modal { --modal-scale: 1.7; }
 }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
 .title {
   font-size: 18px;
   font-weight: 650;
-  margin: 0 0 18px;
+  margin: 0;
+}
+.closeX {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 .row {
   margin-bottom: 18px;
@@ -76,15 +97,6 @@
 }
 .swatch[data-on='true'] {
   border-color: var(--text);
-}
-.close {
-  margin-top: 8px;
-  padding: 9px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
 }
 
 .profileHeader {
@@ -243,12 +255,12 @@
 
 .footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 8px;
   margin-top: 8px;
 }
 
 .reset {
+  flex: 1;
   padding: 9px 16px;
   border-radius: 10px;
   border: 1px solid var(--border-hairline);
@@ -259,6 +271,7 @@
 }
 
 .resetConfirm {
+  flex: 1;
   padding: 9px 16px;
   border-radius: 10px;
   border: 1px solid #ef4444;

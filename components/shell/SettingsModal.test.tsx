@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal } from './SettingsModal';
@@ -114,5 +114,12 @@ describe('SettingsModal', () => {
     await userEvent.click(screen.getByRole('button', { name: /log layout/i }));
     expect(spy).toHaveBeenCalledWith(widgets);
     spy.mockRestore();
+  });
+
+  it('X close button calls onClose', async () => {
+    const onClose = vi.fn();
+    render(<SettingsModal onClose={onClose} />);
+    await userEvent.click(screen.getByRole('button', { name: /close settings/i }));
+    expect(onClose).toHaveBeenCalled();
   });
 });
