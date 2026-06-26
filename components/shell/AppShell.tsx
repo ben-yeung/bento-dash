@@ -75,6 +75,13 @@ export function AppShell() {
     setDragState(s);
   }, []);
 
+  // Hydrate boardStore from localStorage after mount. skipHydration in the persist config
+  // keeps server and client first-renders in sync (both use seedWidgets); this effect then
+  // loads persisted widgets once settingsStore is guaranteed to be hydrated.
+  useEffect(() => {
+    useBoard.persist.rehydrate();
+  }, []);
+
   // Re-resolve board positions whenever layoutMode or layoutOrientation changes so widgets
   // compact correctly under the new strategy immediately.
   useEffect(() => {

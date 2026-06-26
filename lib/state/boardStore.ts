@@ -82,22 +82,20 @@ export const useBoard = create<BoardState>()(
         }
       },
     }),
-    // TODO(persist-hydration): both stores persist without skipHydration, while BentoBoard
-    // is prerendered with seed state on the server. When persisted localStorage differs from
-    // the seed, the first client paint can momentarily differ from server HTML (theme/accent
-    // are covered by the layout.tsx bootstrap script; board widgets and Banner's new Date()
-    // are not), risking a hydration warning / brief flash. Consider skipHydration + a rehydrate
-    // effect, or rendering the board only after mount. anchor: lib/state/boardStore.ts
     {
       name: 'bento-board',
+      // skipHydration: AppShell calls useBoard.persist.rehydrate() in a useEffect after
+      // mount. This guarantees server and client first-render both use seedWidgets (no
+      // hydration mismatch), and that settingsStore is hydrated before reResolve() runs.
+      skipHydration: true,
       onRehydrateStorage: () => (state: BoardState | undefined) => {
         if (state) {
           state.widgets = state.widgets.map((w) =>
             w.widgetType ? w : { ...w, widgetType: WIDGET_TYPE_MIGRATION[w.category] ?? w.category }
           );
-          // Do NOT call reResolve() here — settingsStore may not have hydrated yet,
-          // so strategy() would read the wrong orientation. Grid-unit coordinates are
-          // always valid from storage; horizontal mode repacks via the metrics.rows effect.
+          // Safe to reResolve here: rehydrate() is only called from AppShell's useEffect,
+          // so settingsStore is guaranteed to be hydrated before this callback fires.
+          state.reResolve();
         }
       },
     },
