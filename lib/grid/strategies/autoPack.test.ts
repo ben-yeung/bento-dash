@@ -1,9 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { autoPack, packDense, reorderByCell, createAutoPack } from './autoPack';
+import { autoPack, packDense, reorderByCell, createAutoPack, packDenseH, reorderByCellH, createAutoPackH } from './autoPack';
 import type { WidgetLayout } from '../types';
 
 const wdg = (id: string, w: number, h: number, order: number): WidgetLayout => ({
   id, x: 0, y: 0, w, h, category: 'finance', order,
+});
+
+const at = (id: string, x: number, y: number, w: number, h: number, order: number): WidgetLayout => ({
+  id, x, y, w, h, category: 'finance', order,
 });
 
 describe('autoPack', () => {
@@ -60,5 +64,66 @@ describe('autoPack', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 0, y: 0 });
     expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 2, y: 0 });
     expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 0, y: 1 });
+  });
+});
+
+describe('autoPack horizontal', () => {
+  it('packDenseH places left-first, filling a column before advancing right', () => {
+    const out = packDenseH([wdg('a', 1, 1, 0), wdg('b', 1, 1, 1), wdg('c', 1, 1, 2)], 3);
+    expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 0, y: 0 });
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 1 });
+    expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 0, y: 2 });
+  });
+
+  it('packDenseH overflows to next column when all rows in the current column are full', () => {
+    const out = packDenseH([wdg('a', 1, 1, 0), wdg('b', 1, 1, 1), wdg('c', 1, 1, 2)], 2);
+    expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 1, y: 0 });
+  });
+
+  it('packDenseH clamps h to rows', () => {
+    const out = packDenseH([wdg('a', 1, 4, 0)], 2);
+    expect(out.find((w) => w.id === 'a')!.h).toBe(2);
+  });
+
+  it('reorderByCellH uses x-primary rank so moving to (0,0) puts widget first', () => {
+    const widgets = [
+      at('a', 0, 0, 1, 1, 0),
+      at('b', 0, 1, 1, 1, 1),
+      at('c', 1, 0, 1, 1, 2),
+    ];
+    const reordered = reorderByCellH(widgets, 'c', { x: 0, y: 0 }, 2);
+    expect(reordered.find((w) => w.id === 'c')!.order).toBe(0);
+  });
+
+  it('createAutoPackH preview(drag) packs with left priority', () => {
+    const strat = createAutoPackH(3);
+    const resolved = strat.resolve([wdg('a', 1, 1, 0), wdg('b', 1, 1, 1)]);
+    const out = strat.preview(resolved, { kind: 'drag', id: 'b', targetCell: { x: 0, y: 0 } });
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it('createAutoPackH preview(remove) repacks remaining widgets left', () => {
+    const strat = createAutoPackH(2);
+    // resolve: a=(0,0), b=(0,1), c=(1,0) in a 2-row grid
+    const start = strat.resolve([wdg('a', 1, 1, 0), wdg('b', 1, 1, 1), wdg('c', 1, 1, 2)]);
+    const out = strat.preview(start, { kind: 'remove', id: 'b' });
+    expect(out).toHaveLength(2);
+    // c was at (1,0); after b removed, c shifts to fill (0,1) based on order
+    expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 0, y: 1 });
+  });
+
+  it('createAutoPackH preview(swap) exchanges positions without repacking', () => {
+    const strat = createAutoPackH(4);
+    const layout = [at('a', 0, 0, 2, 1, 0), at('b', 1, 0, 2, 1, 1)];
+    const out = strat.preview(layout, { kind: 'swap', id: 'a', targetId: 'b' });
+    expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 1, y: 0 });
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it('createAutoPackH preview(resize) clamps h to rows and repacks', () => {
+    const strat = createAutoPackH(2);
+    const start = strat.resolve([wdg('a', 1, 1, 0), wdg('b', 1, 1, 1)]);
+    const out = strat.preview(start, { kind: 'resize', id: 'a', w: 1, h: 4 });
+    expect(out.find((w) => w.id === 'a')!.h).toBe(2); // h clamped to rows=2
   });
 });

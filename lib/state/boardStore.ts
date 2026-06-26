@@ -4,12 +4,11 @@ import type { Category, WidgetLayout } from '@/lib/grid/types';
 import { getStrategy } from '@/lib/grid/engine';
 import { presentCategories, reconcileActiveTags } from '@/lib/grid/categories';
 import { useSettings } from './settingsStore';
-import { getRowCount } from './gridState';
 import { seedWidgets } from '@/lib/data/seed';
 
 function strategy() {
   const { layoutMode, layoutOrientation } = useSettings.getState();
-  return getStrategy(layoutMode, layoutOrientation, getRowCount());
+  return getStrategy(layoutMode, layoutOrientation);
 }
 
 function newId(): string {

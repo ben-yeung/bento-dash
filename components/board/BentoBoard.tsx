@@ -28,6 +28,7 @@ interface WidgetWithResizeProps {
   metrics: GridMetrics;
   committed: WidgetLayout[];
   layoutMode: LayoutMode;
+  layoutOrientation: 'vertical' | 'horizontal';
   isSwapTarget: boolean;
   resizingId: string | null;
   interactionsLocked: boolean;
@@ -49,6 +50,7 @@ function WidgetWithResize({
   metrics,
   committed,
   layoutMode,
+  layoutOrientation,
   isSwapTarget,
   resizingId,
   interactionsLocked,
@@ -66,7 +68,7 @@ function WidgetWithResize({
     metrics,
     supportedSizes,
     onPreview: (nw, nh) =>
-      setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+      setResizePreview(getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
     onIndicator: setSnapTarget,
     onCommit: (nw, nh) => {
       resizeWidget(w.id, nw, nh);
@@ -163,7 +165,7 @@ export function BentoBoard({
   // on layoutMode change. anchor: lib/state/boardStore.ts (reResolve)
   const widgets =
     filtering && filterMode === 'hide'
-      ? getStrategy(layoutMode).resolve(base.filter((w) => matches(w.category)))
+      ? getStrategy(layoutMode, layoutOrientation).resolve(base.filter((w) => matches(w.category)))
       : base;
 
   // TODO(filter-drag): while a `hide` filter is active, drag/resize are locked (interactionsLocked)
@@ -215,6 +217,7 @@ export function BentoBoard({
                 metrics={metrics}
                 committed={committed}
                 layoutMode={layoutMode}
+                layoutOrientation={layoutOrientation}
                 isSwapTarget={
                   dragState.phase === 'dragging' &&
                   dragState.targetKind === 'swap' &&
