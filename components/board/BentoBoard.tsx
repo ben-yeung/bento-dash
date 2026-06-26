@@ -7,7 +7,7 @@ import { DropPreview } from './DropPreview';
 import { ResizeHandle } from './ResizeHandle';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
-import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
+import { getStrategy, clampLayout, type LayoutMode } from '@/lib/grid/engine';
 import { nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/sizes';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { useUi } from '@/lib/state/uiStore';
@@ -119,10 +119,13 @@ export function BentoBoard({
   metrics,
   dragState,
 }: BentoBoardProps) {
-  const committed = useBoard((s) => s.widgets);
+  const storedWidgets = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
   const layoutOrientation = useSettings((s) => s.layoutOrientation);
+  const committed = metrics.cols < 6
+    ? clampLayout(storedWidgets, metrics.cols, layoutMode)
+    : storedWidgets;
   const activeTags = useSettings((s) => s.activeTags);
   const filterMode = useSettings((s) => s.filterMode);
 
@@ -189,6 +192,7 @@ export function BentoBoard({
             '--cell-size': `${metrics.cellSize}px`,
           }
         : {
+            gridTemplateColumns: `repeat(${metrics.cols}, 1fr)`,
             gridAutoRows: `${metrics.cellSize}px`,
             '--cell-size': `${metrics.cellSize}px`,
           }
