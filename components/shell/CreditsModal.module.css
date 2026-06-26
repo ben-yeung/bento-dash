@@ -1,0 +1,89 @@
+.dialog {
+  position: fixed;
+  inset: auto; /* cancel dialog:modal UA rule inset: 0 so bottom/left inline styles work */
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-hairline);
+  border-radius: 16px;
+  background: var(--surface-2);
+  color: var(--text);
+  min-width: 200px;
+}
+
+.open {
+  animation: dialogIn 160ms ease-out forwards;
+}
+
+.dialog::backdrop {
+  background: transparent;
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dialogOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(4px); }
+}
+
+.closing {
+  animation: dialogOut 120ms ease-in forwards;
+}
+
+.content {
+  padding: 20px 24px;
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.link {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.15s ease;
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-hairline);
+  margin: 16px 0;
+}
+
+.github {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.15s ease;
+}
+
+.github:hover {
+  color: var(--accent);
+}

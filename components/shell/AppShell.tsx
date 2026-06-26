@@ -42,7 +42,7 @@ function parsePaletteId(id: string): { cat: Category; widgetType: string; w: num
 // Module-level constant so useSensor's useMemo([sensor, options]) sees a stable reference
 // every render. Without this, useSensors returns a new array each render → activators are
 // new → internalContext is new → every useDraggable consumer re-renders after each setDrag
-// call → framer-motion layout effects cascade → nestedUpdateCount hits 50 after ~25 moves.
+// call → framer-motion layout effects cascade → nestedPassiveUpdateCount climbs.
 const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 4 } } as const;
 
 export function AppShell() {
@@ -69,11 +69,40 @@ export function AppShell() {
   // with a stale `idle` value — it hit the early return and never reset, leaving phase stuck
   // at 'dragging' (widget filtered out + drop-preview outline lingering until the next drag).
   const dragStateRef = useRef<DragState>(dragState);
-  // Stable wrapper: keeps dragStateRef in sync so rapid-fire handlers always read the latest
-  // phase without a stale closure, and useState setter is stable so useCallback deps stay tight.
+
+  // RAF pending for deferred drag-move state updates — see scheduleDrag below.
+  const rafIdRef = useRef<number | null>(null);
+  const pendingMoveStateRef = useRef<DragState | null>(null);
+
+  // setDrag: immediate update, used by handleDragStart / handleDragEnd / handleDragCancel.
+  // Also cancels any pending RAF so a fast drop never applies a stale move state after idle.
   const setDrag = useCallback((s: DragState) => {
     dragStateRef.current = s;
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+      pendingMoveStateRef.current = null;
+    }
     setDragState(s);
+  }, []);
+
+  // scheduleDrag: used by handleDragMove — defers setDragState to a RAF callback so it is
+  // NEVER called from inside a passive effect (dnd-kit fires onDragMove from useEffect).
+  // Calling setState inside a passive effect increments React's nestedPassiveUpdateCount;
+  // at 50 it emits "Maximum update depth exceeded". RAF callbacks run outside passive
+  // effects, so nestedPassiveUpdateCount stays at 0.  Only the latest pending state is
+  // applied; intermediate pointer-move states between frames are naturally batched/dropped.
+  const scheduleDrag = useCallback((s: DragState) => {
+    dragStateRef.current = s; // Sync so handleDragEnd always reads fresh phase
+    pendingMoveStateRef.current = s;
+    if (rafIdRef.current === null) {
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        const state = pendingMoveStateRef.current;
+        pendingMoveStateRef.current = null;
+        if (state !== null) setDragState(state);
+      });
+    }
   }, []);
 
   // Hydrate boardStore after mount. skipHydration keeps server/client first-renders in sync
@@ -157,14 +186,6 @@ export function AppShell() {
       const clientX = e.activatorEvent.clientX + e.delta.x;
       const clientY = e.activatorEvent.clientY + e.delta.y;
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
-      // Skip if cursor hasn't crossed into a new grid cell — avoids a setDrag call (and thus
-      // a second React commit) on every pointermove within the same cell, which was the
-      // primary driver of nestedUpdateCount accumulation hitting React's limit of 50.
-      const ds = dragStateRef.current;
-      if (ds.phase === 'dragging' && ds.activeId === id && ds.targetKind === 'insert') {
-        const placed = ds.previewLayout.find((w) => w.id === id);
-        if (placed && placed.x === cell.x && placed.y === cell.y) return;
-      }
       const order = committed.reduce((max, x) => Math.max(max, x.order), -1) + 1;
       const temp: WidgetLayout = {
         id,
@@ -180,7 +201,7 @@ export function AppShell() {
       // tiles use, so existing widgets reflow around it and it lands at the cursor cell —
       // instead of `kind:'add'`, which appends to the end of the board.
       const previewLayout = getStrategy(layoutMode).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
-      setDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
+      scheduleDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
       return;
     }
 
@@ -241,10 +262,10 @@ export function AppShell() {
       if (!hit || !active) return;
       const isSameSize = hit.w === active.w && hit.h === active.h;
       if (isSameSize) {
-        // Skip if already showing this swap
+        // Skip identical swap to avoid a redundant scheduleDrag call
         if (ds.targetKind === 'swap' && ds.targetId === hitId) return;
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
-        setDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
+        scheduleDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
         // Cursor left-half of hit widget → insert before it; right-half → insert after it.
         // Lets a wider widget slip between two narrower ones at any sub-widget position.
@@ -255,20 +276,15 @@ export function AppShell() {
           ? (insertAfter ? hit.x + hit.w : hit.x)
           : Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
-        setDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
+        scheduleDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
       // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
-      // Skip if cursor is still in the same grid cell
-      if (ds.targetKind === 'none') {
-        const placed = ds.previewLayout.find((w) => w.id === activeId);
-        if (placed && placed.x === cell.x && placed.y === cell.y) return;
-      }
       const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
-      setDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
+      scheduleDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
-  }, [boardRef, metrics, committed, layoutMode, setDrag]);
+  }, [boardRef, metrics, committed, layoutMode, scheduleDrag]);
 
   const handleDragEnd = useCallback((e: DragEndEvent) => {
     const id = String(e.active.id);

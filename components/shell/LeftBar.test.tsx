@@ -1,6 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = vi.fn(function(this: HTMLDialogElement) {
+    this.open = true;
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function(this: HTMLDialogElement) {
+    this.open = false;
+  });
+});
 import { LeftBar } from './LeftBar';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useUi } from '@/lib/state/uiStore';
@@ -54,5 +63,16 @@ describe('LeftBar', () => {
     await userEvent.click(toggle);
     expect(useUi.getState().manageMode).toBe(true);
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('renders an About info button', () => {
+    render(<LeftBar />);
+    expect(screen.getByRole('button', { name: 'About' })).toBeTruthy();
+  });
+
+  it('opens the credits modal when the info button is clicked', async () => {
+    render(<LeftBar />);
+    await userEvent.click(screen.getByRole('button', { name: 'About' }));
+    expect(screen.getByRole('dialog', { name: 'Credits' })).toBeTruthy();
   });
 });
