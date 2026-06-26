@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Palette, Camera } from 'lucide-react';
@@ -121,7 +121,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 aria-label="edit display name"
               >
                 {p.displayName || 'Set display name'}
-                <span className={styles.pencil}>✎</span>
+                <span className={styles.pencil}>âœŽ</span>
               </button>
             )}
           </div>
@@ -132,7 +132,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           <div className={styles.avatarEditor}>
             <input
               className={styles.urlInput}
-              placeholder="Paste image URL…"
+              placeholder="Paste image URLâ€¦"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               onKeyDown={(e) => {
@@ -255,7 +255,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               }
             }}
           >
-            {confirmingReset ? 'Confirm reset — tap again' : 'Reset to defaults'}
+            {confirmingReset ? 'Confirm reset â€” tap again' : 'Reset Defaults'}
           </button>
           <button className={styles.close} onClick={onClose} type="button">Done</button>
         </div>

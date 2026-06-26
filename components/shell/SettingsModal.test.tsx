@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal } from './SettingsModal';
@@ -13,7 +13,7 @@ describe('SettingsModal', () => {
     useProfile.setState({ displayName: 'Alice', avatarUrl: '' });
   });
 
-  // — existing tests —
+  // â€” existing tests â€”
   it('switches layout mode and theme via the store', async () => {
     render(<SettingsModal onClose={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /push & compact/i }));
@@ -22,7 +22,7 @@ describe('SettingsModal', () => {
     expect(useSettings.getState().theme).toBe('light');
   });
 
-  // — profile header —
+  // â€” profile header â€”
   it('displays current displayName', () => {
     render(<SettingsModal onClose={() => {}} />);
     expect(screen.getByRole('button', { name: /edit display name/i })).toHaveTextContent('Alice');
@@ -81,14 +81,14 @@ describe('SettingsModal', () => {
   it('custom color picker updates accent in store', () => {
     render(<SettingsModal onClose={() => {}} />);
     const picker = screen.getByLabelText(/custom accent color/i) as HTMLInputElement;
-    // fireEvent.change — userEvent doesn't drive <input type="color">
+    // fireEvent.change â€” userEvent doesn't drive <input type="color">
     fireEvent.change(picker, { target: { value: '#abcdef' } });
     expect(useSettings.getState().accent).toBe('#abcdef');
   });
 
   it('reset button enters confirmation state on first click', async () => {
     render(<SettingsModal onClose={() => {}} />);
-    const btn = screen.getByRole('button', { name: /reset to defaults/i });
+    const btn = screen.getByRole('button', { name: /reset defaults/i });
     await userEvent.click(btn);
     expect(screen.getByRole('button', { name: /confirm reset/i })).toBeInTheDocument();
   });
@@ -98,7 +98,7 @@ describe('SettingsModal', () => {
     useSettings.getState().setTheme('light');
     useProfile.getState().setDisplayName('Alice');
     render(<SettingsModal onClose={onClose} />);
-    const btn = screen.getByRole('button', { name: /reset to defaults/i });
+    const btn = screen.getByRole('button', { name: /reset defaults/i });
     await userEvent.click(btn);
     await userEvent.click(screen.getByRole('button', { name: /confirm reset/i }));
     expect(useSettings.getState().theme).toBe('dark');
