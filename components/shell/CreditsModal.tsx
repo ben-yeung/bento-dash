@@ -32,7 +32,7 @@ export function CreditsModal({
         const rect = anchorRef.current.getBoundingClientRect();
         // Set position synchronously before showModal so the dialog opens in the right place
         dialog.style.bottom = `${window.innerHeight - rect.bottom}px`;
-        dialog.style.left = `${rect.right + 8}px`;
+        dialog.style.left = `${rect.left}px`;
       }
       dialog.showModal();
       setEntering(true);
