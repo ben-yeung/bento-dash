@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -123,10 +123,19 @@ export function AppShell() {
     });
   }, []);
 
-  // Sync row count into gridState and reflow when horizontal mode computes a new row count.
-  useEffect(() => {
+  // Sync row count into gridState before paint so drag handlers always see the correct
+  // value. useLayoutEffect fires synchronously after DOM mutations and before the browser
+  // paints — eliminating the window where CSS shows N rows but getRowCount() returns an
+  // old value, which caused drag previews to pack widgets beyond the visible grid.
+  useLayoutEffect(() => {
     if (typeof metrics.rows !== 'number') return;
     setRowCount(metrics.rows);
+  }, [metrics.rows]);
+
+  // Reflow board positions after the row count is in sync (deferred to useEffect so the
+  // Zustand update doesn't fire inside the layout phase).
+  useEffect(() => {
+    if (typeof metrics.rows !== 'number') return;
     useBoard.getState().reResolve();
   }, [metrics.rows]);
 
@@ -144,6 +153,11 @@ export function AppShell() {
   }, [layoutOrientation]);
 
   const sensors = useSensors(useSensor(PointerSensor, POINTER_SENSOR_OPTIONS));
+
+  // Pass live metrics.rows to getStrategy rather than relying on getRowCount() — avoids
+  // any remaining staleness window between a resize observer firing and useLayoutEffect
+  // updating _rowCount. Undefined in vertical mode (getStrategy ignores it for V).
+  const metricsRowCount = typeof metrics.rows === 'number' ? metrics.rows : undefined;
 
   const dragActiveId = dragState.phase === 'dragging' ? dragState.activeId : null;
   const paletteInfo =
@@ -168,10 +182,10 @@ export function AppShell() {
     }
     const widget = committed.find((w) => w.id === id);
     if (!widget) return;
-    const withoutActive = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'remove', id });
+    const withoutActive = getStrategy(layoutMode, layoutOrientation, metricsRowCount).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }, [committed, layoutMode, layoutOrientation, setDrag]);
+  }, [committed, layoutMode, layoutOrientation, metricsRowCount, setDrag]);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
     const id = String(e.active.id);
@@ -200,7 +214,7 @@ export function AppShell() {
       // Inject the new widget then position it through the SAME insert pipeline board
       // tiles use, so existing widgets reflow around it and it lands at the cursor cell —
       // instead of `kind:'add'`, which appends to the end of the board.
-      const previewLayout = getStrategy(layoutMode, layoutOrientation).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
+      const previewLayout = getStrategy(layoutMode, layoutOrientation, metricsRowCount).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
       scheduleDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
       return;
     }
@@ -264,7 +278,7 @@ export function AppShell() {
       if (isSameSize) {
         // Skip identical swap to avoid a redundant scheduleDrag call
         if (ds.targetKind === 'swap' && ds.targetId === hitId) return;
-        const previewLayout = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
+        const previewLayout = getStrategy(layoutMode, layoutOrientation, metricsRowCount).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
         // Cursor left-half of hit widget → insert before it; right-half → insert after it.
@@ -275,16 +289,16 @@ export function AppShell() {
         const targetX = metrics.rows !== 'auto'
           ? (insertAfter ? hit.x + hit.w : hit.x)
           : Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
-        const previewLayout = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
+        const previewLayout = getStrategy(layoutMode, layoutOrientation, metricsRowCount).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
       // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
-      const previewLayout = getStrategy(layoutMode, layoutOrientation).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
+      const previewLayout = getStrategy(layoutMode, layoutOrientation, metricsRowCount).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
       scheduleDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
-  }, [boardRef, metrics, committed, layoutMode, layoutOrientation, scheduleDrag]);
+  }, [boardRef, metrics, committed, layoutMode, layoutOrientation, metricsRowCount, scheduleDrag]);
 
   const handleDragEnd = useCallback((e: DragEndEvent) => {
     const id = String(e.active.id);

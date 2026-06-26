@@ -10,12 +10,15 @@ const LARGE = 9999;
 export function getStrategy(
   mode: LayoutMode,
   orientation: LayoutOrientation = 'vertical',
+  rowCount?: number,
 ): LayoutStrategy {
   if (orientation === 'horizontal') {
-    const rowCount = getRowCount();
+    // Callers that have metrics.rows directly (drag handlers) pass it explicitly to avoid
+    // reading the stale getRowCount() value that lags one render behind the CSS grid.
+    const rows = rowCount ?? getRowCount();
     return mode === 'pushCompact'
-      ? createPushCompactH(rowCount, LARGE)
-      : createAutoPackH(rowCount, LARGE);
+      ? createPushCompactH(rows, LARGE)
+      : createAutoPackH(rows, LARGE);
   }
   return mode === 'pushCompact' ? pushCompact : autoPack;
 }
