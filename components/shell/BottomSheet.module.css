@@ -1,0 +1,27 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 40;
+}
+.sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border-hairline);
+  z-index: 41;
+  padding: 8px 0 calc(env(safe-area-inset-bottom) + 72px);
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-hairline);
+  margin: 0 auto 12px;
+}

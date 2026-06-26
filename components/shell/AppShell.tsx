@@ -16,15 +16,18 @@ import { LeftBar } from './LeftBar';
 import { Banner } from './Banner';
 import { ProfileButton } from './ProfileButton';
 import { Fab } from './Fab';
+import { BottomNav } from './BottomNav';
+import { BottomSheet } from './BottomSheet';
 import { BentoBoard } from '@/components/board/BentoBoard';
 import { DragOverlayWidget } from '@/components/board/DragOverlayWidget';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
 import { useDragStore } from '@/lib/state/dragStore';
 import { useUi } from '@/lib/state/uiStore';
-import { getStrategy } from '@/lib/grid/engine';
+import { getStrategy, createAutoPack, createPushCompact } from '@/lib/grid/engine';
 import { pointToCell } from '@/lib/grid/collision';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
+import { useBreakpoint } from '@/lib/hooks/useBreakpoint';
 import { setRowCount } from '@/lib/state/gridState';
 import type { Category, WidgetLayout, DragState } from '@/lib/grid/types';
 
@@ -50,12 +53,14 @@ export function AppShell() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const layoutOrientation = useSettings((s) => s.layoutOrientation);
   const [boardHydrated, setBoardHydrated] = useState(false);
-  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation, boardHydrated);
+  const { isMobile, cols } = useBreakpoint();
+  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation, boardHydrated, cols);
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
   const placeWidgetFromPreview = useBoard((s) => s.placeWidgetFromPreview);
   const swapWidgets = useBoard((s) => s.swapWidgets);
+  const setWidgetOrder = useBoard((s) => s.setWidgetOrder);
   const layoutMode = useSettings((s) => s.layoutMode);
 
   const setFabOpen = useDragStore((s) => s.setFabOpen);
@@ -63,6 +68,7 @@ export function AppShell() {
   const setManageMode = useUi((s) => s.setManageMode);
 
   const [dragState, setDragState] = useState<DragState>({ phase: 'idle' });
+  const [sheetOpen, setSheetOpen] = useState(false);
   // Mirror dragState in a ref updated synchronously inside the handlers. dnd-kit can fire
   // onDragStart and onDragEnd in the same task before React commits the "dragging" render
   // (rapid drags), so reading dragState from the render closure left handleDragEnd running
@@ -161,19 +167,28 @@ export function AppShell() {
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
       if (!parsed) return;
+      setFabOpen(false);
+      setSheetOpen(false);
       // Seed previewLayout as committed; the first move computes the add-preview
       // (temp widget) so existing widgets reflow around the landing spot.
       setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout: committed });
       return;
     }
+    // TODO(mobile-sensor-swap): replace handleDragStart early-return with DelayedPointerSensor config
+    // swap so dnd-kit never activates outside edit mode; current approach allows brief phantom drag
+    // activation (4px threshold fires, handleDragStart returns, session aborts) — may cause flicker
+    // on physical devices; test before shipping.
+    if (isMobile && !manageMode) return;
     const widget = committed.find((w) => w.id === id);
     if (!widget) return;
-    const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
+    const strategy = layoutMode === 'pushCompact' ? createPushCompact(metrics.cols, 9999) : createAutoPack(metrics.cols, 9999);
+    const withoutActive = strategy.preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }, [committed, layoutMode, setDrag]);
+  }, [committed, layoutMode, metrics, setDrag, setFabOpen, setSheetOpen, isMobile, manageMode]);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
+    const strategy = layoutMode === 'pushCompact' ? createPushCompact(metrics.cols, 9999) : createAutoPack(metrics.cols, 9999);
     const id = String(e.active.id);
 
     if (id.startsWith('palette:')) {
@@ -200,7 +215,7 @@ export function AppShell() {
       // Inject the new widget then position it through the SAME insert pipeline board
       // tiles use, so existing widgets reflow around it and it lands at the cursor cell —
       // instead of `kind:'add'`, which appends to the end of the board.
-      const previewLayout = getStrategy(layoutMode).preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
+      const previewLayout = strategy.preview([...committed, temp], { kind: 'drag', id, targetCell: cell });
       scheduleDrag({ phase: 'dragging', activeId: id, targetKind: 'insert', previewLayout });
       return;
     }
@@ -264,7 +279,7 @@ export function AppShell() {
       if (isSameSize) {
         // Skip identical swap to avoid a redundant scheduleDrag call
         if (ds.targetKind === 'swap' && ds.targetId === hitId) return;
-        const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
+        const previewLayout = strategy.preview(committed, { kind: 'swap', id: activeId, targetId: hitId });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'swap', targetId: hitId, previewLayout });
       } else {
         // Cursor left-half of hit widget → insert before it; right-half → insert after it.
@@ -275,13 +290,13 @@ export function AppShell() {
         const targetX = metrics.rows !== 'auto'
           ? (insertAfter ? hit.x + hit.w : hit.x)
           : Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
-        const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
+        const previewLayout = strategy.preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
     } else {
       // Cursor position (not dragged widget rect) keeps gap targeting grab-offset-free
       const cell = pointToCell(clientX - boardRect.left, clientY - boardRect.top, metrics);
-      const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
+      const previewLayout = strategy.preview(committed, { kind: 'drag', id: activeId, targetCell: cell });
       scheduleDrag({ phase: 'dragging', activeId, targetKind: 'none', previewLayout });
     }
   }, [boardRef, metrics, committed, layoutMode, scheduleDrag]);
@@ -317,6 +332,16 @@ export function AppShell() {
       setDrag({ phase: 'idle' });
       return;
     }
+    // Mobile: reorder only — write order field, preserve (x,y) coordinates
+    if (isMobile) {
+      const ds = dragStateRef.current;
+      if (ds.phase === 'dragging' && !ds.activeId.startsWith('palette:')) {
+        const orderedIds = ds.previewLayout.map((w) => w.id);
+        setWidgetOrder(orderedIds);
+      }
+      setDrag({ phase: 'idle' });
+      return;
+    }
     // Read the live drag state from the ref (not the render closure) and ALWAYS reset to
     // idle, even if phase reads non-'dragging'. A rapid drop can run this handler before the
     // "dragging" render commits; bailing early there previously left phase stuck.
@@ -331,7 +356,7 @@ export function AppShell() {
       }
     }
     setDrag({ phase: 'idle' });
-  }, [boardRef, placeWidgetFromPreview, setFabOpen, moveWidget, swapWidgets, setDrag]);
+  }, [boardRef, placeWidgetFromPreview, setFabOpen, moveWidget, swapWidgets, setDrag, isMobile, setWidgetOrder]);
 
   const handleDragCancel = useCallback(() => {
     setDrag({ phase: 'idle' });
@@ -346,7 +371,7 @@ export function AppShell() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className={styles.shell}>
+      <div className={isMobile ? styles.shellMobile : styles.shell}>
         {manageMode && (
           <div
             className={styles.manageOverlay}
@@ -355,25 +380,46 @@ export function AppShell() {
           />
         )}
         <ThemeController />
-        <LeftBar />
+        {!isMobile && <LeftBar />}
         <div className={styles.main}>
           <Banner profileSlot={<ProfileButton />} />
           {boardHydrated ? (
             <div
               ref={scrollRef}
-              className={layoutOrientation === 'horizontal' ? styles.scrollHorizontal : styles.scroll}
+              className={
+                layoutOrientation === 'horizontal'
+                  ? styles.scrollHorizontal
+                  : isMobile
+                    ? styles.scrollMobile
+                    : styles.scroll
+              }
             >
               <BentoBoard
                 boardRef={boardRef}
                 metrics={metrics}
                 dragState={dragState}
+                touchDragEnabled={!isMobile || manageMode}
               />
             </div>
           ) : (
             <div className={styles.scroll} />
           )}
-          <Fab cellSize={metrics.cellSize} />
+          {!isMobile && <Fab cellSize={metrics.cellSize} />}
         </div>
+        {isMobile && (
+          <BottomNav
+            sheetOpen={sheetOpen}
+            onSheetOpen={() => setSheetOpen(true)}
+            onSheetClose={() => setSheetOpen(false)}
+          />
+        )}
+        {isMobile && (
+          <BottomSheet
+            open={sheetOpen}
+            cellSize={metrics.cellSize}
+            onClose={() => setSheetOpen(false)}
+          />
+        )}
       </div>
       <DragOverlay dropAnimation={null}>
         {activeWidget ? <DragOverlayWidget widget={activeWidget} metrics={metrics} /> : null}

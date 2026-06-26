@@ -9,11 +9,12 @@ export function useGridMetrics(
   scrollRef: RefObject<HTMLElement | null>,
   orientation: LayoutOrientation,
   hydrated = true,
+  cols = COLS,
 ): GridMetrics {
   const [metrics, setMetrics] = useState<GridMetrics>({
     cellSize: 100,
     gap: GRID_GAP,
-    cols: COLS,
+    cols,
     rows: 'auto',
   });
 
@@ -37,15 +38,15 @@ export function useGridMetrics(
       if (!el) return;
       const update = () => {
         const width = el.clientWidth;
-        const cellSize = (width - (COLS - 1) * GRID_GAP) / COLS;
-        setMetrics({ cellSize, gap: GRID_GAP, cols: COLS, rows: 'auto' });
+        const cellSize = (width - (cols - 1) * GRID_GAP) / cols;
+        setMetrics({ cellSize, gap: GRID_GAP, cols, rows: 'auto' });
       };
       update();
       const ro = new ResizeObserver(update);
       ro.observe(el);
       return () => ro.disconnect();
     }
-  }, [boardRef, scrollRef, orientation, hydrated]);
+  }, [boardRef, scrollRef, orientation, hydrated, cols]);
 
   return metrics;
 }

@@ -40,9 +40,10 @@ function pickerHeight(def: WidgetDefinition, cellSize: number): number {
 interface WidgetCarouselProps {
   cellSize: number;
   onClose: () => void;
+  isMobile?: boolean;
 }
 
-export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
+export function WidgetCarousel({ cellSize, onClose, isMobile = false }: WidgetCarouselProps) {
   const addWidget = useBoard((s) => s.addWidget);
   const [activeFilter, setActiveFilter]     = useState<Category | null>(null);
   const [selectedWidget, setSelectedWidget] = useState<WidgetDefinition | null>(null);
@@ -72,7 +73,7 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
         <motion.div
           key="browse"
           className={styles.panel}
-          style={{ height: browseH }}
+          style={isMobile ? undefined : { height: browseH }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -99,7 +100,10 @@ export function WidgetCarousel({ cellSize, onClose }: WidgetCarouselProps) {
             </button>
           </div>
 
-          <div className={styles.tileRow} onWheel={handleRowWheel}>
+          <div
+            className={isMobile ? styles.tileGrid : styles.tileRow}
+            onWheel={isMobile ? undefined : handleRowWheel}
+          >
             {visibleDefs.map((def) => (
               <BrowseTile
                 key={def.type}

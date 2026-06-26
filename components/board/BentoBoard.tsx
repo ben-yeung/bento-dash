@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'motion/react';
 import styles from './BentoBoard.module.css';
 import { Widget } from './Widget';
@@ -7,11 +7,12 @@ import { DropPreview } from './DropPreview';
 import { ResizeHandle } from './ResizeHandle';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
-import { getStrategy, type LayoutMode } from '@/lib/grid/engine';
+import { getStrategy, clampLayout, createAutoPack, createPushCompact, type LayoutMode } from '@/lib/grid/engine';
 import { nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/sizes';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { useUi } from '@/lib/state/uiStore';
 import { useDragResize } from '@/lib/hooks/useDragResize';
+import { useLongPress } from '@/lib/hooks/useLongPress';
 import type { WidgetLayout, DragState } from '@/lib/grid/types';
 import type { GridMetrics } from '@/lib/grid/collision';
 import type { RefObject } from 'react';
@@ -20,6 +21,7 @@ interface BentoBoardProps {
   boardRef: RefObject<HTMLDivElement | null>;
   metrics: GridMetrics;
   dragState: DragState;
+  touchDragEnabled: boolean;
 }
 
 interface WidgetWithResizeProps {
@@ -33,6 +35,9 @@ interface WidgetWithResizeProps {
   interactionsLocked: boolean;
   manageMode: boolean;
   supportedSizes?: SizePreset[];
+  isMobile: boolean;
+  cols: number;
+  onEnterManage: () => void;
   setResizePreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
@@ -54,19 +59,30 @@ function WidgetWithResize({
   interactionsLocked,
   manageMode,
   supportedSizes,
+  isMobile,
+  cols,
+  onEnterManage,
   setResizePreview,
   setResizingId,
   resizeWidget,
 }: WidgetWithResizeProps) {
   const [snapTarget, setSnapTarget] = useState<SizePreset | null>(null);
 
+  const longPress = useLongPress(
+    isMobile && !manageMode && resizingId === null ? onEnterManage : undefined,
+  );
+
   const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useDragResize({
     startW: w.w,
     startH: w.h,
     metrics,
     supportedSizes,
-    onPreview: (nw, nh) =>
-      setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+    onPreview: (nw, nh) => {
+      const strategy = layoutMode === 'pushCompact'
+        ? createPushCompact(cols, 9999)
+        : createAutoPack(cols, 9999);
+      setResizePreview(strategy.preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh }));
+    },
     onIndicator: setSnapTarget,
     onCommit: (nw, nh) => {
       resizeWidget(w.id, nw, nh);
@@ -87,6 +103,7 @@ function WidgetWithResize({
       manageMode={manageMode}
       resizing={isResizing}
       snapTarget={isResizing ? (snapTarget?.name ?? null) : null}
+      longPressHandlers={longPress}
     >
       {!interactionsLocked && (
         <ResizeHandle
@@ -118,15 +135,25 @@ export function BentoBoard({
   boardRef,
   metrics,
   dragState,
+  touchDragEnabled,
 }: BentoBoardProps) {
-  const committed = useBoard((s) => s.widgets);
+  const storedWidgets = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
   const layoutMode = useSettings((s) => s.layoutMode);
   const layoutOrientation = useSettings((s) => s.layoutOrientation);
+  const committed = metrics.cols < 6
+    ? clampLayout(storedWidgets, metrics.cols, layoutMode)
+    : storedWidgets;
   const activeTags = useSettings((s) => s.activeTags);
   const filterMode = useSettings((s) => s.filterMode);
 
   const manageMode = useUi((s) => s.manageMode);
+  const setManageMode = useUi((s) => s.setManageMode);
+
+  const onEnterManage = useCallback(() => {
+    setManageMode(true);
+    navigator.vibrate?.(10);
+  }, [setManageMode]);
 
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [resizePreview, setResizePreview] = useState<WidgetLayout[] | null>(null);
@@ -182,6 +209,7 @@ export function BentoBoard({
       className={styles.board}
       data-manage-mode={manageMode}
       data-orientation={layoutOrientation}
+      data-touch-drag={touchDragEnabled ? 'on' : 'off'}
       style={(layoutOrientation === 'horizontal'
         ? {
             gridTemplateRows: `repeat(${typeof metrics.rows === 'number' ? metrics.rows : 4}, ${metrics.cellSize}px)`,
@@ -189,6 +217,7 @@ export function BentoBoard({
             '--cell-size': `${metrics.cellSize}px`,
           }
         : {
+            gridTemplateColumns: `repeat(${metrics.cols}, 1fr)`,
             gridAutoRows: `${metrics.cellSize}px`,
             '--cell-size': `${metrics.cellSize}px`,
           }
@@ -224,6 +253,9 @@ export function BentoBoard({
                 interactionsLocked={interactionsLocked}
                 manageMode={manageMode}
                 supportedSizes={def?.supportedSizes}
+                isMobile={metrics.cols < 6}
+                cols={metrics.cols}
+                onEnterManage={onEnterManage}
                 setResizePreview={setResizePreview}
                 setResizingId={setResizingId}
                 resizeWidget={resizeWidget}

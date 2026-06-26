@@ -2,6 +2,8 @@ import type { LayoutOrientation, LayoutStrategy, Move, WidgetLayout } from './ty
 import { autoPack, createAutoPack } from './strategies/autoPack';
 import { pushCompact, createPushCompact } from './strategies/pushCompact';
 
+export { createAutoPack, createPushCompact };
+
 export type LayoutMode = 'autoPack' | 'pushCompact';
 
 const LARGE = 9999; // effectively no upper bound on the unbounded axis
@@ -48,4 +50,15 @@ export function getStrategy(
 ): LayoutStrategy {
   if (orientation === 'horizontal') return wrapHorizontal(mode, rowCount);
   return mode === 'pushCompact' ? pushCompact : autoPack;
+}
+
+export function clampLayout(
+  widgets: WidgetLayout[],
+  cols: number,
+  mode: LayoutMode,
+): WidgetLayout[] {
+  const clamped = widgets.map((w) => ({ ...w, w: Math.min(w.w, cols) }));
+  const strategy =
+    mode === 'pushCompact' ? createPushCompact(cols, LARGE) : createAutoPack(cols, LARGE);
+  return strategy.resolve(clamped);
 }
