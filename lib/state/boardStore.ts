@@ -95,7 +95,9 @@ export const useBoard = create<BoardState>()(
           state.widgets = state.widgets.map((w) =>
             w.widgetType ? w : { ...w, widgetType: WIDGET_TYPE_MIGRATION[w.category] ?? w.category }
           );
-          state.reResolve();
+          // Do NOT call reResolve() here — settingsStore may not have hydrated yet,
+          // so strategy() would read the wrong orientation. Grid-unit coordinates are
+          // always valid from storage; horizontal mode repacks via the metrics.rows effect.
         }
       },
     },
