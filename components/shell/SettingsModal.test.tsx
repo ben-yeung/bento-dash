@@ -106,4 +106,13 @@ describe('SettingsModal', () => {
     expect(useBoard.getState().widgets.length).toBe(seedWidgets().length);
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('log layout button logs current widgets to console', async () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const widgets = useBoard.getState().widgets;
+    render(<SettingsModal onClose={() => {}} />);
+    await userEvent.click(screen.getByRole('button', { name: /log layout/i }));
+    expect(spy).toHaveBeenCalledWith(widgets);
+    spy.mockRestore();
+  });
 });

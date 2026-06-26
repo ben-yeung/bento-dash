@@ -234,6 +234,13 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
         <div className={styles.footer}>
           <button
+            className={styles.reset}
+            type="button"
+            onClick={() => console.log(useBoard.getState().widgets)}
+          >
+            Log Layout
+          </button>
+          <button
             className={confirmingReset ? styles.resetConfirm : styles.reset}
             type="button"
             onBlur={() => setConfirmingReset(false)}
