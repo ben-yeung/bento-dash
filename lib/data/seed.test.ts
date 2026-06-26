@@ -51,10 +51,10 @@ describe('seedWidgets', () => {
 
   it('section 2 rows are flush (each row sums to 6 columns)', () => {
     const widgets = seedWidgets().slice(10);
-    // Row 6-7: w=2+2+2=6
+    // Starting row y=6 (widgets span rows 6–7): w=2+2+2=6
     const row6 = widgets.filter((w) => w.y === 6);
     expect(row6.reduce((s, w) => s + w.w, 0)).toBe(6);
-    // Row 8-9: w=2+2+2=6
+    // Starting row y=8 (widgets span rows 8–9): w=2+2+2=6
     const row8 = widgets.filter((w) => w.y === 8);
     expect(row8.reduce((s, w) => s + w.w, 0)).toBe(6);
     // Row 10: w=2+2+1+1=6
