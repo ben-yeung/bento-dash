@@ -54,6 +54,12 @@
   gap: 8px;
 }
 
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .link {
   color: var(--text);
   text-decoration: none;
