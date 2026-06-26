@@ -21,7 +21,7 @@ export function useGridMetrics(
       const el = scrollRef.current;
       if (!el) return;
       const update = () => {
-        const availableHeight = el.clientHeight;
+        const availableHeight = el.clientHeight - 16;
         const rowCount = Math.max(MIN_ROWS, Math.floor(availableHeight / (TARGET_CELL_SIZE + GRID_GAP)));
         const cellSize = (availableHeight - (rowCount - 1) * GRID_GAP) / rowCount;
         setMetrics({ cellSize, gap: GRID_GAP, cols: COLS, rows: rowCount });
