@@ -8,6 +8,7 @@ export function useGridMetrics(
   boardRef: RefObject<HTMLElement | null>,
   scrollRef: RefObject<HTMLElement | null>,
   orientation: LayoutOrientation,
+  hydrated = true,
 ): GridMetrics {
   const [metrics, setMetrics] = useState<GridMetrics>({
     cellSize: 100,
@@ -17,6 +18,7 @@ export function useGridMetrics(
   });
 
   useEffect(() => {
+    if (!hydrated) return;
     if (orientation === 'horizontal') {
       const el = scrollRef.current;
       if (!el) return;
@@ -43,7 +45,7 @@ export function useGridMetrics(
       ro.observe(el);
       return () => ro.disconnect();
     }
-  }, [boardRef, scrollRef, orientation]);
+  }, [boardRef, scrollRef, orientation, hydrated]);
 
   return metrics;
 }

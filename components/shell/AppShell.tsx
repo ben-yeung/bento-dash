@@ -50,7 +50,7 @@ export function AppShell() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const layoutOrientation = useSettings((s) => s.layoutOrientation);
   const [boardHydrated, setBoardHydrated] = useState(false);
-  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation);
+  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation, boardHydrated);
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
