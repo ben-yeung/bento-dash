@@ -174,6 +174,10 @@ export function AppShell() {
       setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout: committed });
       return;
     }
+    // TODO(mobile-sensor-swap): replace handleDragStart early-return with DelayedPointerSensor config
+    // swap so dnd-kit never activates outside edit mode; current approach allows brief phantom drag
+    // activation (4px threshold fires, handleDragStart returns, session aborts) — may cause flicker
+    // on physical devices; test before shipping.
     if (isMobile && !manageMode) return;
     const widget = committed.find((w) => w.id === id);
     if (!widget) return;

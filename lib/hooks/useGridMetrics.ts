@@ -14,7 +14,7 @@ export function useGridMetrics(
   const [metrics, setMetrics] = useState<GridMetrics>({
     cellSize: 100,
     gap: GRID_GAP,
-    cols: COLS,
+    cols,
     rows: 'auto',
   });
 

@@ -73,10 +73,10 @@ export const useBoard = create<BoardState>()(
       resetBoard: () => set({ widgets: strategy().resolve(seedWidgets()) }),
       setWidgetOrder: (orderedIds) =>
         set((s) => ({
-          widgets: s.widgets.map((w) => ({
-            ...w,
-            order: orderedIds.indexOf(w.id),
-          })),
+          widgets: s.widgets.map((w) => {
+            const idx = orderedIds.indexOf(w.id);
+            return { ...w, order: idx >= 0 ? idx : w.order };
+          }),
         })),
       removeWidget: (id) => {
         const widgets = strategy().preview(get().widgets, { kind: 'remove', id });

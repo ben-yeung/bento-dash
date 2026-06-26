@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'motion/react';
 import styles from './BentoBoard.module.css';
 import { Widget } from './Widget';
@@ -67,7 +67,7 @@ function WidgetWithResize({
   const [snapTarget, setSnapTarget] = useState<SizePreset | null>(null);
 
   const longPress = useLongPress(
-    isMobile && !manageMode ? onEnterManage : undefined,
+    isMobile && !manageMode && resizingId === null ? onEnterManage : undefined,
   );
 
   const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useDragResize({
@@ -143,6 +143,11 @@ export function BentoBoard({
 
   const manageMode = useUi((s) => s.manageMode);
   const setManageMode = useUi((s) => s.setManageMode);
+
+  const onEnterManage = useCallback(() => {
+    setManageMode(true);
+    navigator.vibrate?.(10);
+  }, [setManageMode]);
 
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [resizePreview, setResizePreview] = useState<WidgetLayout[] | null>(null);
@@ -243,10 +248,7 @@ export function BentoBoard({
                 manageMode={manageMode}
                 supportedSizes={def?.supportedSizes}
                 isMobile={metrics.cols < 6}
-                onEnterManage={() => {
-                  setManageMode(true);
-                  navigator.vibrate?.(10);
-                }}
+                onEnterManage={onEnterManage}
                 setResizePreview={setResizePreview}
                 setResizingId={setResizingId}
                 resizeWidget={resizeWidget}
