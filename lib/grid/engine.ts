@@ -49,3 +49,12 @@ export function getStrategy(
   if (orientation === 'horizontal') return wrapHorizontal(mode, rowCount);
   return mode === 'pushCompact' ? pushCompact : autoPack;
 }
+
+export function clampLayout(
+  widgets: WidgetLayout[],
+  cols: number,
+  mode: LayoutMode,
+): WidgetLayout[] {
+  const clamped = widgets.map((w) => ({ ...w, w: Math.min(w.w, cols) }));
+  return getStrategy(mode, 'horizontal', cols).resolve(clamped);
+}

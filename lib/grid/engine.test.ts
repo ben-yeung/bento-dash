@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { getStrategy, type LayoutMode } from './engine';
+import { getStrategy, clampLayout, type LayoutMode } from './engine';
 import { autoPack } from './strategies/autoPack';
 import { pushCompact } from './strategies/pushCompact';
-import type { WidgetLayout } from './types';
+import type { WidgetLayout, Category } from './types';
 
 const wdg = (id: string, x: number, y: number, w: number, h: number, order: number): WidgetLayout => ({
   id, x, y, w, h, category: 'finance', order,
@@ -68,5 +68,31 @@ describe('engine', () => {
       expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 0, y: 0 });
       expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 1 });
     });
+  });
+});
+
+describe('clampLayout', () => {
+  const make = (id: string, w: number, order: number): WidgetLayout => ({
+    id, x: 0, y: 0, w, h: 1, category: 'health' as Category, order,
+  });
+
+  it('clamps all widget widths to col count', () => {
+    const widgets = [make('a', 6, 0), make('b', 4, 1), make('c', 1, 2)];
+    const result = clampLayout(widgets, 2, 'autoPack');
+    expect(result.every((w) => w.w <= 2)).toBe(true);
+  });
+
+  it('repacks so no widget exceeds col bounds', () => {
+    const widgets = [make('a', 3, 0), make('b', 3, 1)];
+    const result = clampLayout(widgets, 2, 'autoPack');
+    for (const w of result) {
+      expect(w.x + w.w).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('returns layout unchanged when cols >= all widget widths', () => {
+    const widgets = [make('a', 2, 0)];
+    const result = clampLayout(widgets, 6, 'autoPack');
+    expect(result[0].w).toBe(2);
   });
 });
