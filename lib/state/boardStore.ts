@@ -36,6 +36,7 @@ interface BoardState {
   removeWidget: (id: string) => void;
   swapWidgets: (id: string, targetId: string) => void;
   resetBoard: () => void;
+  setWidgetOrder: (orderedIds: string[]) => void;
 }
 
 export const useBoard = create<BoardState>()(
@@ -70,6 +71,13 @@ export const useBoard = create<BoardState>()(
       swapWidgets: (id, targetId) =>
         set({ widgets: strategy().preview(get().widgets, { kind: 'swap', id, targetId }) }),
       resetBoard: () => set({ widgets: strategy().resolve(seedWidgets()) }),
+      setWidgetOrder: (orderedIds) =>
+        set((s) => ({
+          widgets: s.widgets.map((w) => ({
+            ...w,
+            order: orderedIds.indexOf(w.id),
+          })),
+        })),
       removeWidget: (id) => {
         const widgets = strategy().preview(get().widgets, { kind: 'remove', id });
         set({ widgets });

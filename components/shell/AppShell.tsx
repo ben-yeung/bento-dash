@@ -25,6 +25,7 @@ import { useUi } from '@/lib/state/uiStore';
 import { getStrategy } from '@/lib/grid/engine';
 import { pointToCell } from '@/lib/grid/collision';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
+import { useBreakpoint } from '@/lib/hooks/useBreakpoint';
 import { setRowCount } from '@/lib/state/gridState';
 import type { Category, WidgetLayout, DragState } from '@/lib/grid/types';
 
@@ -50,12 +51,14 @@ export function AppShell() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const layoutOrientation = useSettings((s) => s.layoutOrientation);
   const [boardHydrated, setBoardHydrated] = useState(false);
-  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation, boardHydrated);
+  const { isMobile, cols } = useBreakpoint();
+  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation, boardHydrated, cols);
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
   const placeWidgetFromPreview = useBoard((s) => s.placeWidgetFromPreview);
   const swapWidgets = useBoard((s) => s.swapWidgets);
+  const setWidgetOrder = useBoard((s) => s.setWidgetOrder);
   const layoutMode = useSettings((s) => s.layoutMode);
 
   const setFabOpen = useDragStore((s) => s.setFabOpen);
@@ -161,6 +164,7 @@ export function AppShell() {
     if (id.startsWith('palette:')) {
       const parsed = parsePaletteId(id);
       if (!parsed) return;
+      setFabOpen(false); // closes desktop FAB panel and mobile sheet
       // Seed previewLayout as committed; the first move computes the add-preview
       // (temp widget) so existing widgets reflow around the landing spot.
       setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout: committed });
@@ -171,7 +175,7 @@ export function AppShell() {
     const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }, [committed, layoutMode, setDrag]);
+  }, [committed, layoutMode, setDrag, setFabOpen]);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
     const id = String(e.active.id);
@@ -317,6 +321,16 @@ export function AppShell() {
       setDrag({ phase: 'idle' });
       return;
     }
+    // Mobile: reorder only — write order field, preserve (x,y) coordinates
+    if (isMobile) {
+      const ds = dragStateRef.current;
+      if (ds.phase === 'dragging' && !ds.activeId.startsWith('palette:')) {
+        const orderedIds = ds.previewLayout.map((w) => w.id);
+        setWidgetOrder(orderedIds);
+      }
+      setDrag({ phase: 'idle' });
+      return;
+    }
     // Read the live drag state from the ref (not the render closure) and ALWAYS reset to
     // idle, even if phase reads non-'dragging'. A rapid drop can run this handler before the
     // "dragging" render commits; bailing early there previously left phase stuck.
@@ -331,7 +345,7 @@ export function AppShell() {
       }
     }
     setDrag({ phase: 'idle' });
-  }, [boardRef, placeWidgetFromPreview, setFabOpen, moveWidget, swapWidgets, setDrag]);
+  }, [boardRef, placeWidgetFromPreview, setFabOpen, moveWidget, swapWidgets, setDrag, isMobile, setWidgetOrder]);
 
   const handleDragCancel = useCallback(() => {
     setDrag({ phase: 'idle' });
@@ -346,7 +360,7 @@ export function AppShell() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className={styles.shell}>
+      <div className={isMobile ? styles.shellMobile : styles.shell}>
         {manageMode && (
           <div
             className={styles.manageOverlay}
@@ -355,13 +369,19 @@ export function AppShell() {
           />
         )}
         <ThemeController />
-        <LeftBar />
+        {!isMobile && <LeftBar />}
         <div className={styles.main}>
           <Banner profileSlot={<ProfileButton />} />
           {boardHydrated ? (
             <div
               ref={scrollRef}
-              className={layoutOrientation === 'horizontal' ? styles.scrollHorizontal : styles.scroll}
+              className={
+                layoutOrientation === 'horizontal'
+                  ? styles.scrollHorizontal
+                  : isMobile
+                    ? styles.scrollMobile
+                    : styles.scroll
+              }
             >
               <BentoBoard
                 boardRef={boardRef}
@@ -372,7 +392,7 @@ export function AppShell() {
           ) : (
             <div className={styles.scroll} />
           )}
-          <Fab cellSize={metrics.cellSize} />
+          {!isMobile && <Fab cellSize={metrics.cellSize} />}
         </div>
       </div>
       <DragOverlay dropAnimation={null}>
