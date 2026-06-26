@@ -109,6 +109,7 @@ export function WidgetCarousel({ cellSize, onClose, isMobile = false }: WidgetCa
                 key={def.type}
                 definition={def}
                 cellSize={cellSize}
+                isMobile={isMobile}
                 onSelect={() => setSelectedWidget(def)}
               />
             ))}

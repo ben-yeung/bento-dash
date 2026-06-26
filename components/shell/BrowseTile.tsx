@@ -11,9 +11,10 @@ interface BrowseTileProps {
   definition: WidgetDefinition;
   onSelect: () => void;
   cellSize: number;
+  isMobile?: boolean;
 }
 
-export function BrowseTile({ definition, onSelect, cellSize }: BrowseTileProps) {
+export function BrowseTile({ definition, onSelect, cellSize, isMobile = false }: BrowseTileProps) {
   const orientation = useSettings((s) => s.layoutOrientation);
   const defaultSize = (() => {
     if (orientation !== 'horizontal') return definition.supportedSizes[0];
@@ -22,7 +23,7 @@ export function BrowseTile({ definition, onSelect, cellSize }: BrowseTileProps) 
   })();
   const dragId = `palette:${definition.category}:${definition.type}:${defaultSize.w}x${defaultSize.h}`;
 
-  const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId });
+  const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId, disabled: isMobile });
 
   return (
     <div className={styles.wrap} style={{ '--w-accent': definition.accentColor } as CSSProperties}>

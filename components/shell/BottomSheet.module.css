@@ -9,7 +9,9 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
   border-radius: 20px 20px 0 0;
   border-top: 1px solid var(--border-hairline);
   z-index: 41;

@@ -94,6 +94,7 @@
   gap: 12px;
   padding: 4px 16px 8px;
   overflow-y: auto;
+  touch-action: pan-y;
 }
 
 /* Size-picker state */
