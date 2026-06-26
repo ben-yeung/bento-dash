@@ -145,3 +145,13 @@
 .sizeRow::-webkit-scrollbar {
   display: none;
 }
+
+.sizeStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 16px 8px;
+  overflow-y: auto;
+  touch-action: pan-y;
+  align-items: flex-start;
+}

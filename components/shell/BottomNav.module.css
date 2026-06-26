@@ -42,7 +42,7 @@
   padding: 6px 10px;
   border-radius: 10px;
   border: 1px solid var(--border-hairline);
-  background: transparent;
+  background: var(--surface);
   color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
@@ -53,7 +53,7 @@
 .chip[data-active='true'] {
   border-color: var(--accent);
   color: var(--text);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
 }
 .chipLabel {
   font-size: 12px;

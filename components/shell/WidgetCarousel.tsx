@@ -119,7 +119,7 @@ export function WidgetCarousel({ cellSize, onClose, isMobile = false }: WidgetCa
         <motion.div
           key="picker"
           className={styles.panel}
-          style={{ height: pickerHeight(selectedWidget, cellSize) }}
+          style={isMobile ? undefined : { height: pickerHeight(selectedWidget, cellSize) }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
@@ -137,7 +137,10 @@ export function WidgetCarousel({ cellSize, onClose, isMobile = false }: WidgetCa
             <span className={styles.pickerTitle}>{selectedWidget.label}</span>
           </div>
 
-          <div className={styles.sizeRow} onWheel={handleRowWheel}>
+          <div
+            className={isMobile ? styles.sizeStack : styles.sizeRow}
+            onWheel={isMobile ? undefined : handleRowWheel}
+          >
             {selectedWidget.supportedSizes.map((size) => (
               <SizePickerTile
                 key={size.name}
@@ -145,6 +148,7 @@ export function WidgetCarousel({ cellSize, onClose, isMobile = false }: WidgetCa
                 size={size}
                 cellSize={cellSize}
                 gap={GRID_GAP}
+                isMobile={isMobile}
                 onAdd={(w, h) => handleAdd(selectedWidget.category, selectedWidget.type, w, h)}
               />
             ))}

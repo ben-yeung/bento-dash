@@ -12,11 +12,12 @@ interface SizePickerTileProps {
   onAdd: (w: number, h: number) => void;
   cellSize: number;
   gap: number;
+  isMobile?: boolean;
 }
 
-export function SizePickerTile({ definition, size, onAdd, cellSize, gap }: SizePickerTileProps) {
+export function SizePickerTile({ definition, size, onAdd, cellSize, gap, isMobile = false }: SizePickerTileProps) {
   const dragId = `palette:${definition.category}:${definition.type}:${size.w}x${size.h}`;
-  const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId });
+  const { listeners, attributes, setNodeRef, isDragging } = useDraggable({ id: dragId, disabled: isMobile });
 
   const tileW = size.w * cellSize + (size.w - 1) * gap;
   const tileH = size.h * cellSize + (size.h - 1) * gap;
