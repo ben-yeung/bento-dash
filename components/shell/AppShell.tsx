@@ -49,6 +49,7 @@ export function AppShell() {
   const boardRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const layoutOrientation = useSettings((s) => s.layoutOrientation);
+  const [boardHydrated, setBoardHydrated] = useState(false);
   const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation);
 
   const committed = useBoard((s) => s.widgets);
@@ -75,11 +76,12 @@ export function AppShell() {
     setDragState(s);
   }, []);
 
-  // Hydrate boardStore from localStorage after mount. skipHydration in the persist config
-  // keeps server and client first-renders in sync (both use seedWidgets); this effect then
-  // loads persisted widgets once settingsStore is guaranteed to be hydrated.
+  // Hydrate boardStore after mount. skipHydration keeps server/client first-renders in sync
+  // (both use seedWidgets + default orientation); setBoardHydrated gates the board out of the
+  // render tree until both stores are loaded, eliminating the SSR/client orientation mismatch.
   useEffect(() => {
     useBoard.persist.rehydrate();
+    setBoardHydrated(true);
   }, []);
 
   // Re-resolve board positions whenever layoutMode or layoutOrientation changes so widgets
@@ -340,16 +342,20 @@ export function AppShell() {
         <LeftBar />
         <div className={styles.main}>
           <Banner profileSlot={<ProfileButton />} />
-          <div
-            ref={scrollRef}
-            className={layoutOrientation === 'horizontal' ? styles.scrollHorizontal : styles.scroll}
-          >
-            <BentoBoard
-              boardRef={boardRef}
-              metrics={metrics}
-              dragState={dragState}
-            />
-          </div>
+          {boardHydrated ? (
+            <div
+              ref={scrollRef}
+              className={layoutOrientation === 'horizontal' ? styles.scrollHorizontal : styles.scroll}
+            >
+              <BentoBoard
+                boardRef={boardRef}
+                metrics={metrics}
+                dragState={dragState}
+              />
+            </div>
+          ) : (
+            <div className={styles.scroll} />
+          )}
           <Fab cellSize={metrics.cellSize} />
         </div>
       </div>
