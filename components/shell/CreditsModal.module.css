@@ -1,5 +1,6 @@
 .dialog {
   position: fixed;
+  inset: auto; /* cancel dialog:modal UA rule inset: 0 so bottom/left inline styles work */
   margin: 0;
   padding: 0;
   border: 1px solid var(--border-hairline);
