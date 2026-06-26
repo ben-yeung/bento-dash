@@ -104,4 +104,11 @@ describe('pushCompact horizontal', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 1, y: 0 });
     expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
   });
+
+  it('createPushCompactH preview(resize) clamps h to rows and recompacts', () => {
+    const strat = createPushCompactH(2);
+    const start = [at('a', 0, 0, 1, 1, 0), at('b', 1, 0, 1, 1, 1)];
+    const out = strat.preview(start, { kind: 'resize', id: 'a', w: 1, h: 5 });
+    expect(out.find((w) => w.id === 'a')!.h).toBe(2); // h clamped to rows=2
+  });
 });

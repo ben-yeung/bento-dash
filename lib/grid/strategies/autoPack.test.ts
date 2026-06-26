@@ -119,4 +119,11 @@ describe('autoPack horizontal', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 1, y: 0 });
     expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
   });
+
+  it('createAutoPackH preview(resize) clamps h to rows and repacks', () => {
+    const strat = createAutoPackH(2);
+    const start = strat.resolve([wdg('a', 1, 1, 0), wdg('b', 1, 1, 1)]);
+    const out = strat.preview(start, { kind: 'resize', id: 'a', w: 1, h: 4 });
+    expect(out.find((w) => w.id === 'a')!.h).toBe(2); // h clamped to rows=2
+  });
 });
