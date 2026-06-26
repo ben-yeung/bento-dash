@@ -88,6 +88,14 @@
   display: none;
 }
 
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 4px 16px 8px;
+  overflow-y: auto;
+}
+
 /* Size-picker state */
 .pickerHeader {
   display: flex;

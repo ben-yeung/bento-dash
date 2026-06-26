@@ -15,7 +15,8 @@
   z-index: 41;
   padding: 8px 0 calc(env(safe-area-inset-bottom) + 72px);
   max-height: 80vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .handle {
   width: 36px;

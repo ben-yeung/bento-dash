@@ -32,7 +32,7 @@ export function BottomSheet({ open, cellSize, onClose }: BottomSheetProps) {
             transition={{ type: 'spring', stiffness: 340, damping: 30, mass: 0.9 }}
           >
             <div className={styles.handle} aria-hidden />
-            <WidgetCarousel cellSize={cellSize} onClose={onClose} />
+            <WidgetCarousel cellSize={cellSize} onClose={onClose} isMobile />
           </motion.div>
         </>
       )}
