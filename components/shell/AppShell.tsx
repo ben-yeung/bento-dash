@@ -392,6 +392,7 @@ export function AppShell() {
                 boardRef={boardRef}
                 metrics={metrics}
                 dragState={dragState}
+                touchDragEnabled={!isMobile || manageMode}
               />
             </div>
           ) : (

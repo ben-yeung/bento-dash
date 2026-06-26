@@ -5,15 +5,15 @@
   border-radius: var(--radius-tile);
   overflow: hidden;
   user-select: none;
-  cursor: grab;
-  touch-action: none;
+  cursor: var(--tile-cursor, grab);
+  touch-action: var(--tile-touch-action, none);
   --resize-handle-opacity: 0;
 }
 .tile:hover {
   --resize-handle-opacity: 1;
 }
 .tile:active {
-  cursor: grabbing;
+  cursor: var(--tile-cursor-active, grabbing);
 }
 .tile[data-dragging='true'] {
   opacity: 0.35;

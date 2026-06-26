@@ -12,3 +12,10 @@
   transition: opacity 0.15s ease;
   touch-action: none;
 }
+
+@media (pointer: coarse) {
+  .handle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

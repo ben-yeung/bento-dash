@@ -20,6 +20,12 @@ interface WidgetProps {
   resizing?: boolean;
   snapTarget?: string | null;
   children?: ReactNode;
+  longPressHandlers?: {
+    onPointerDown: (e: React.PointerEvent) => void;
+    onPointerMove: (e: React.PointerEvent) => void;
+    onPointerUp: (e: React.PointerEvent) => void;
+    onPointerCancel: (e: React.PointerEvent) => void;
+  };
 }
 
 export function Widget({
@@ -32,6 +38,7 @@ export function Widget({
   resizing = false,
   snapTarget = null,
   children,
+  longPressHandlers,
 }: WidgetProps) {
   const removeWidget = useBoard((s) => s.removeWidget);
   const def = WIDGET_REGISTRY.find((d) => d.type === widget.widgetType);
@@ -63,8 +70,23 @@ export function Widget({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: dimmed ? 0.18 : 1, scale: 1 }}
       ref={setNodeRef}
-      {...(interactive ? listeners : {})}
       {...attributes}
+      onPointerDown={(e) => {
+        listeners?.onPointerDown?.(e);
+        longPressHandlers?.onPointerDown(e);
+      }}
+      onPointerMove={(e) => {
+        listeners?.onPointerMove?.(e);
+        longPressHandlers?.onPointerMove(e);
+      }}
+      onPointerUp={(e) => {
+        listeners?.onPointerUp?.(e);
+        longPressHandlers?.onPointerUp(e);
+      }}
+      onPointerCancel={(e) => {
+        listeners?.onPointerCancel?.(e);
+        longPressHandlers?.onPointerCancel(e);
+      }}
     >
       <ScaledWidgetContent
         category={widget.category}

@@ -12,6 +12,7 @@ import { nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/si
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { useUi } from '@/lib/state/uiStore';
 import { useDragResize } from '@/lib/hooks/useDragResize';
+import { useLongPress } from '@/lib/hooks/useLongPress';
 import type { WidgetLayout, DragState } from '@/lib/grid/types';
 import type { GridMetrics } from '@/lib/grid/collision';
 import type { RefObject } from 'react';
@@ -20,6 +21,7 @@ interface BentoBoardProps {
   boardRef: RefObject<HTMLDivElement | null>;
   metrics: GridMetrics;
   dragState: DragState;
+  touchDragEnabled: boolean;
 }
 
 interface WidgetWithResizeProps {
@@ -33,6 +35,8 @@ interface WidgetWithResizeProps {
   interactionsLocked: boolean;
   manageMode: boolean;
   supportedSizes?: SizePreset[];
+  isMobile: boolean;
+  onEnterManage: () => void;
   setResizePreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
   resizeWidget: (id: string, w: number, h: number) => void;
@@ -54,11 +58,17 @@ function WidgetWithResize({
   interactionsLocked,
   manageMode,
   supportedSizes,
+  isMobile,
+  onEnterManage,
   setResizePreview,
   setResizingId,
   resizeWidget,
 }: WidgetWithResizeProps) {
   const [snapTarget, setSnapTarget] = useState<SizePreset | null>(null);
+
+  const longPress = useLongPress(
+    isMobile && !manageMode ? onEnterManage : undefined,
+  );
 
   const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useDragResize({
     startW: w.w,
@@ -87,6 +97,7 @@ function WidgetWithResize({
       manageMode={manageMode}
       resizing={isResizing}
       snapTarget={isResizing ? (snapTarget?.name ?? null) : null}
+      longPressHandlers={longPress}
     >
       {!interactionsLocked && (
         <ResizeHandle
@@ -118,6 +129,7 @@ export function BentoBoard({
   boardRef,
   metrics,
   dragState,
+  touchDragEnabled,
 }: BentoBoardProps) {
   const storedWidgets = useBoard((s) => s.widgets);
   const resizeWidget = useBoard((s) => s.resizeWidget);
@@ -130,6 +142,7 @@ export function BentoBoard({
   const filterMode = useSettings((s) => s.filterMode);
 
   const manageMode = useUi((s) => s.manageMode);
+  const setManageMode = useUi((s) => s.setManageMode);
 
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [resizePreview, setResizePreview] = useState<WidgetLayout[] | null>(null);
@@ -185,6 +198,7 @@ export function BentoBoard({
       className={styles.board}
       data-manage-mode={manageMode}
       data-orientation={layoutOrientation}
+      data-touch-drag={touchDragEnabled ? 'on' : 'off'}
       style={(layoutOrientation === 'horizontal'
         ? {
             gridTemplateRows: `repeat(${typeof metrics.rows === 'number' ? metrics.rows : 4}, ${metrics.cellSize}px)`,
@@ -228,6 +242,11 @@ export function BentoBoard({
                 interactionsLocked={interactionsLocked}
                 manageMode={manageMode}
                 supportedSizes={def?.supportedSizes}
+                isMobile={metrics.cols < 6}
+                onEnterManage={() => {
+                  setManageMode(true);
+                  navigator.vibrate?.(10);
+                }}
                 setResizePreview={setResizePreview}
                 setResizingId={setResizingId}
                 resizeWidget={resizeWidget}

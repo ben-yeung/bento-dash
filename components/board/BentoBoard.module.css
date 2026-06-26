@@ -14,3 +14,14 @@
 .board[data-orientation="horizontal"] {
   height: 100%;
 }
+
+.board[data-touch-drag='off'] {
+  --tile-touch-action: auto;
+  --tile-cursor: default;
+  --tile-cursor-active: default;
+}
+.board[data-touch-drag='on'] {
+  --tile-touch-action: none;
+  --tile-cursor: grab;
+  --tile-cursor-active: grabbing;
+}
