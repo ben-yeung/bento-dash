@@ -7,7 +7,7 @@ import { DropPreview } from './DropPreview';
 import { ResizeHandle } from './ResizeHandle';
 import { useBoard } from '@/lib/state/boardStore';
 import { useSettings } from '@/lib/state/settingsStore';
-import { getStrategy, clampLayout, type LayoutMode } from '@/lib/grid/engine';
+import { getStrategy, clampLayout, createAutoPack, createPushCompact, type LayoutMode } from '@/lib/grid/engine';
 import { nearestPreset, nearestPresetFrom, type SizePreset } from '@/lib/grid/sizes';
 import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { useUi } from '@/lib/state/uiStore';
@@ -36,6 +36,7 @@ interface WidgetWithResizeProps {
   manageMode: boolean;
   supportedSizes?: SizePreset[];
   isMobile: boolean;
+  cols: number;
   onEnterManage: () => void;
   setResizePreview: (widgets: WidgetLayout[] | null) => void;
   setResizingId: (id: string | null) => void;
@@ -59,6 +60,7 @@ function WidgetWithResize({
   manageMode,
   supportedSizes,
   isMobile,
+  cols,
   onEnterManage,
   setResizePreview,
   setResizingId,
@@ -75,8 +77,12 @@ function WidgetWithResize({
     startH: w.h,
     metrics,
     supportedSizes,
-    onPreview: (nw, nh) =>
-      setResizePreview(getStrategy(layoutMode).preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh })),
+    onPreview: (nw, nh) => {
+      const strategy = layoutMode === 'pushCompact'
+        ? createPushCompact(cols, 9999)
+        : createAutoPack(cols, 9999);
+      setResizePreview(strategy.preview(committed, { kind: 'resize', id: w.id, w: nw, h: nh }));
+    },
     onIndicator: setSnapTarget,
     onCommit: (nw, nh) => {
       resizeWidget(w.id, nw, nh);
@@ -248,6 +254,7 @@ export function BentoBoard({
                 manageMode={manageMode}
                 supportedSizes={def?.supportedSizes}
                 isMobile={metrics.cols < 6}
+                cols={metrics.cols}
                 onEnterManage={onEnterManage}
                 setResizePreview={setResizePreview}
                 setResizingId={setResizingId}

@@ -2,6 +2,8 @@ import type { LayoutOrientation, LayoutStrategy, Move, WidgetLayout } from './ty
 import { autoPack, createAutoPack } from './strategies/autoPack';
 import { pushCompact, createPushCompact } from './strategies/pushCompact';
 
+export { createAutoPack, createPushCompact };
+
 export type LayoutMode = 'autoPack' | 'pushCompact';
 
 const LARGE = 9999; // effectively no upper bound on the unbounded axis
