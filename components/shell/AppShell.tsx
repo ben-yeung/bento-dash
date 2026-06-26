@@ -170,12 +170,13 @@ export function AppShell() {
       setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout: committed });
       return;
     }
+    if (isMobile && !manageMode) return;
     const widget = committed.find((w) => w.id === id);
     if (!widget) return;
     const withoutActive = getStrategy(layoutMode).preview(committed, { kind: 'remove', id });
     const previewLayout = [...withoutActive, widget];
     setDrag({ phase: 'dragging', activeId: id, targetKind: 'none', previewLayout });
-  }, [committed, layoutMode, setDrag, setFabOpen]);
+  }, [committed, layoutMode, setDrag, setFabOpen, isMobile, manageMode]);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
     const id = String(e.active.id);
