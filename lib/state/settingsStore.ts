@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { LayoutMode } from '@/lib/grid/engine';
-import type { Category } from '@/lib/grid/types';
+import type { Category, LayoutOrientation } from '@/lib/grid/types';
 
 export type Theme = 'dark' | 'light';
 export type FilterMode = 'hide' | 'dim';
@@ -11,6 +11,7 @@ export const ACCENT_PRESETS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b
 export const SETTINGS_DEFAULTS = {
   theme: 'dark' as Theme,
   layoutMode: 'autoPack' as LayoutMode,
+  layoutOrientation: 'vertical' as LayoutOrientation,
   filterMode: 'hide' as FilterMode,
   activeTags: [] as Category[],
   accent: '#6366f1',
@@ -19,11 +20,13 @@ export const SETTINGS_DEFAULTS = {
 interface SettingsState {
   theme: Theme;
   layoutMode: LayoutMode;
+  layoutOrientation: LayoutOrientation;
   filterMode: FilterMode;
   activeTags: Category[];
   accent: string;
   setTheme: (t: Theme) => void;
   setLayoutMode: (m: LayoutMode) => void;
+  setLayoutOrientation: (o: LayoutOrientation) => void;
   setFilterMode: (f: FilterMode) => void;
   toggleTag: (c: Category) => void;
   setAccent: (a: string) => void;
@@ -36,6 +39,7 @@ export const useSettings = create<SettingsState>()(
       ...SETTINGS_DEFAULTS,
       setTheme: (theme) => set({ theme }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
+      setLayoutOrientation: (layoutOrientation) => set({ layoutOrientation }),
       setFilterMode: (filterMode) => set({ filterMode }),
       toggleTag: (c) =>
         set((s) => ({

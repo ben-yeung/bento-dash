@@ -25,6 +25,7 @@ import { useUi } from '@/lib/state/uiStore';
 import { getStrategy } from '@/lib/grid/engine';
 import { pointToCell } from '@/lib/grid/collision';
 import { useGridMetrics } from '@/lib/hooks/useGridMetrics';
+import { setRowCount } from '@/lib/state/gridState';
 import type { Category, WidgetLayout, DragState } from '@/lib/grid/types';
 
 function parsePaletteId(id: string): { cat: Category; widgetType: string; w: number; h: number } | null {
@@ -46,7 +47,10 @@ const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 4 } } as cons
 
 export function AppShell() {
   const boardRef = useRef<HTMLDivElement>(null);
-  const metrics = useGridMetrics(boardRef);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const layoutOrientation = useSettings((s) => s.layoutOrientation);
+  const [boardHydrated, setBoardHydrated] = useState(false);
+  const metrics = useGridMetrics(boardRef, scrollRef, layoutOrientation, boardHydrated);
 
   const committed = useBoard((s) => s.widgets);
   const moveWidget = useBoard((s) => s.moveWidget);
@@ -101,15 +105,43 @@ export function AppShell() {
     }
   }, []);
 
-  // Re-resolve board positions whenever layoutMode changes so widgets
+  // Hydrate boardStore after mount. skipHydration keeps server/client first-renders in sync
+  // (both use seedWidgets + default orientation); setBoardHydrated gates the board out of the
+  // render tree until both stores are loaded, eliminating the SSR/client orientation mismatch.
+  useEffect(() => {
+    useBoard.persist.rehydrate();
+    setBoardHydrated(true);
+  }, []);
+
+  // Re-resolve board positions whenever layoutMode or layoutOrientation changes so widgets
   // compact correctly under the new strategy immediately.
   useEffect(() => {
     return useSettings.subscribe((s, prev) => {
-      if (s.layoutMode !== prev.layoutMode) {
+      if (s.layoutMode !== prev.layoutMode || s.layoutOrientation !== prev.layoutOrientation) {
         useBoard.getState().reResolve();
       }
     });
   }, []);
+
+  // Sync row count into gridState and reflow when horizontal mode computes a new row count.
+  useEffect(() => {
+    if (typeof metrics.rows !== 'number') return;
+    setRowCount(metrics.rows);
+    useBoard.getState().reResolve();
+  }, [metrics.rows]);
+
+  // Convert vertical wheel scroll into horizontal scroll when in horizontal mode.
+  useEffect(() => {
+    if (layoutOrientation !== 'horizontal') return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [layoutOrientation]);
 
   const sensors = useSensors(useSensor(PointerSensor, POINTER_SENSOR_OPTIONS));
 
@@ -240,7 +272,9 @@ export function AppShell() {
         const hitLeftPx = boardRect.left + hit.x * stride;
         const hitWidthPx = hit.w * metrics.cellSize + (hit.w - 1) * metrics.gap;
         const insertAfter = clientX - hitLeftPx > hitWidthPx / 2;
-        const targetX = Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
+        const targetX = metrics.rows !== 'auto'
+          ? (insertAfter ? hit.x + hit.w : hit.x)
+          : Math.min(insertAfter ? hit.x + hit.w : hit.x, metrics.cols - 1);
         const previewLayout = getStrategy(layoutMode).preview(committed, { kind: 'drag', id: activeId, targetCell: { x: targetX, y: hit.y } });
         scheduleDrag({ phase: 'dragging', activeId, targetKind: 'insert', previewLayout });
       }
@@ -323,14 +357,21 @@ export function AppShell() {
         <ThemeController />
         <LeftBar />
         <div className={styles.main}>
-          <div className={styles.scroll}>
-            <Banner profileSlot={<ProfileButton />} />
-            <BentoBoard
-              boardRef={boardRef}
-              metrics={metrics}
-              dragState={dragState}
-            />
-          </div>
+          <Banner profileSlot={<ProfileButton />} />
+          {boardHydrated ? (
+            <div
+              ref={scrollRef}
+              className={layoutOrientation === 'horizontal' ? styles.scrollHorizontal : styles.scroll}
+            >
+              <BentoBoard
+                boardRef={boardRef}
+                metrics={metrics}
+                dragState={dragState}
+              />
+            </div>
+          ) : (
+            <div className={styles.scroll} />
+          )}
           <Fab cellSize={metrics.cellSize} />
         </div>
       </div>

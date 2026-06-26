@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDragResize } from './useDragResize';
+import type { GridMetrics } from '@/lib/grid/collision';
 
-const metrics = { cellSize: 100, gap: 12, cols: 6 }; // stride = 112 px
+const metrics: GridMetrics = { cellSize: 100, gap: 12, cols: 6, rows: 'auto' }; // stride = 112 px
 
 function makePointer(x: number, y: number, pointerId = 1): React.PointerEvent {
   return {

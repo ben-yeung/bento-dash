@@ -18,4 +18,15 @@ describe('settingsStore', () => {
     expect(s.activeTags).toEqual([]);
     expect(s.accent).toBe('#6366f1');
   });
+
+  it('defaults layoutOrientation to vertical', () => {
+    const s = useSettings.getState();
+    expect(s.layoutOrientation).toBe('vertical');
+  });
+
+  it('setLayoutOrientation changes orientation', () => {
+    useSettings.getState().setLayoutOrientation('horizontal');
+    expect(useSettings.getState().layoutOrientation).toBe('horizontal');
+    useSettings.getState().setLayoutOrientation('vertical');
+  });
 });

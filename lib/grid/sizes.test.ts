@@ -33,4 +33,10 @@ describe('sizes', () => {
   it('nearestPresetFrom falls back to full SIZE_PRESETS when given empty array', () => {
     expect(nearestPresetFrom(1, 1, []).name).toBe('1×1');
   });
+
+  it('clampSize respects custom maxW and maxH', () => {
+    expect(clampSize(10, 10, 4, 999)).toEqual({ w: 4, h: 10 });
+    expect(clampSize(1, 6, 6, 4)).toEqual({ w: 1, h: 4 });
+    expect(clampSize(3, 2, 3, 999)).toEqual({ w: 3, h: 2 });
+  });
 });

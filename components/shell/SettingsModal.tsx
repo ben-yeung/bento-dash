@@ -180,6 +180,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className={styles.row}>
+          <div className={styles.label}>Scroll direction</div>
+          <div className={styles.seg}>
+            <button className={styles.segBtn} data-on={s.layoutOrientation === 'horizontal'} onClick={() => s.setLayoutOrientation('horizontal')}>Horizontal</button>
+            <button className={styles.segBtn} data-on={s.layoutOrientation === 'vertical'} onClick={() => s.setLayoutOrientation('vertical')}>Vertical</button>
+          </div>
+        </div>
+
+        <div className={styles.row}>
           <div className={styles.label}>Filter behavior</div>
           <div className={styles.seg}>
             <button className={styles.segBtn} data-on={s.filterMode === 'hide'} onClick={() => s.setFilterMode('hide')}>Hide &amp; reflow</button>

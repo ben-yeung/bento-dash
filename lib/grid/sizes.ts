@@ -1,5 +1,8 @@
 import { COLS, MAX_H } from './types';
 
+export const TARGET_CELL_SIZE = 180; // px — target cell size for horizontal rowCount calc
+export const MIN_ROWS = 2;           // minimum rows in horizontal mode
+
 export interface SizePreset {
   name: string;
   w: number;
@@ -20,10 +23,10 @@ export const SIZE_PRESETS: SizePreset[] = [
   { name: '6×1', w: 6, h: 1, group: 'extended' },
 ];
 
-export function clampSize(w: number, h: number): { w: number; h: number } {
+export function clampSize(w: number, h: number, maxW = COLS, maxH = MAX_H): { w: number; h: number } {
   return {
-    w: Math.max(1, Math.min(COLS, Math.round(w))),
-    h: Math.max(1, Math.min(MAX_H, Math.round(h))),
+    w: Math.max(1, Math.min(maxW, Math.round(w))),
+    h: Math.max(1, Math.min(maxH, Math.round(h))),
   };
 }
 

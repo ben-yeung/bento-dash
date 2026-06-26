@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pushCompact, compactVertical } from './pushCompact';
+import { pushCompact, compactVertical, createPushCompact } from './pushCompact';
 import type { WidgetLayout } from '../types';
 
 const at = (id: string, x: number, y: number, w: number, h: number, order: number): WidgetLayout => ({
@@ -41,5 +41,15 @@ describe('pushCompact', () => {
     expect(out.find((w) => w.id === 'a')).toMatchObject({ x: 2, y: 0 });
     expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 0, y: 0 });
     expect(out.find((w) => w.id === 'c')).toMatchObject({ x: 4, y: 0 });
+  });
+
+  it('createPushCompact with cols=3 compacts within 3 columns', () => {
+    const strat = createPushCompact(3, 999);
+    const widgets: WidgetLayout[] = [
+      { id: 'a', x: 0, y: 0, w: 2, h: 1, category: 'finance', order: 0 },
+      { id: 'b', x: 2, y: 0, w: 2, h: 1, category: 'health', order: 1 },
+    ];
+    const out = strat.resolve(widgets);
+    expect(out.find((w) => w.id === 'b')).toMatchObject({ x: 1 });
   });
 });
