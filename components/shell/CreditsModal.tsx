@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './CreditsModal.module.css';
 
 const LIBS = [
@@ -23,7 +23,6 @@ export function CreditsModal({
   const ref = useRef<HTMLDialogElement>(null);
   const [closing, setClosing] = useState(false);
   const [entering, setEntering] = useState(false);
-  const [pos, setPos] = useState<{ bottom: number; left: number } | undefined>(undefined);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -31,7 +30,9 @@ export function CreditsModal({
     if (open && !dialog.open) {
       if (anchorRef?.current) {
         const rect = anchorRef.current.getBoundingClientRect();
-        setPos({ bottom: window.innerHeight - rect.bottom, left: rect.right + 8 });
+        // Set position synchronously before showModal so the dialog opens in the right place
+        dialog.style.bottom = `${window.innerHeight - rect.bottom}px`;
+        dialog.style.left = `${rect.right + 8}px`;
       }
       dialog.showModal();
       setEntering(true);
@@ -57,7 +58,6 @@ export function CreditsModal({
     <dialog
       ref={ref}
       className={`${styles.dialog}${entering ? ` ${styles.open}` : ''}${closing ? ` ${styles.closing}` : ''}`}
-      style={pos}
       onCancel={(e) => { e.preventDefault(); handleClose(); }}
       onClick={handleBackdropClick}
       aria-label="Credits"
